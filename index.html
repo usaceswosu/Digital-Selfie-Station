@@ -1,11 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Photo Booth Camera</title>
+    <meta charset="UTF-8">
+    <title>Photo Booth Camera</title>
 </head>
 
 <body>
-  <header>
-    <h2>Souvenir Photo Booth</h2>
-  </header>
+    <header>
+        <h2>Souvenir Photo Booth</h2>
+    </header>
+
+    <div class="viewfinder">
+        <video id="webcam" autoplay playsinline muted></video>
+
+        <div class="overlay-layer">
+            <div class="overlay-badge">TEST</div>
+        </div>
+
+        <div class="controls">
+            <button id="flipBtn" class="btn-flip" title="Switch Camera">🔄</button>
+            <button id="snapBtn" class="btn-snap">Snap Photo</button>
+            <button id="timerBtn" class="btn-timer">5s Timer</button>
+        </div>
+    </div>
+</body>
+</html>
