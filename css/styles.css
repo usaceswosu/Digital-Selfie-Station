@@ -24,3 +24,20 @@ video {
     height: 100%;
     object-fit: cover;
 }
+
+.overlay-layer {
+    position: absolute;
+    bottom: 70px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    pointer-events: none;
+}
+
+  .overlay-badge {
+    display: inline-block;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+}
