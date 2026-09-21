@@ -1,9 +1,20 @@
+body {
+    font-family: sans-serif;
+    background: #121212;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    padding: 20px;
+}
+
 .viewfinder {
     position: relative;
     width: 100%;
     max-width: 480px;
     aspect-ratio: 9 / 16;
-    background: #000;
+    background: #000000;
     border-radius: 12px;
     overflow: hidden;
 }
