@@ -41,3 +41,34 @@ video {
     border-radius: 20px;
     font-weight: bold;
 }
+
+.controls {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    gap: 8px;
+}
+
+button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-snap {
+    background: #22c53d; 
+    color: #000000; 
+}
+.btn-timer { 
+    background: #155ccf; 
+    color: #ffffff; 
+}
+.btn-flip { 
+    flex: 0.3; 
+    background: #333333; 
+    color: #ffffff; }
