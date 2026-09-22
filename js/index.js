@@ -42,6 +42,8 @@ function captureCompositeFrame() {
     const ctx = canvas.getContext('2d');
 
     // mirror camera for selfie mode
+    ctx.save();
+
     if (currentFacingMode === 'user') {
         ctx.translate(width, 0);
         ctx.scale(-1, 1);
@@ -49,11 +51,29 @@ function captureCompositeFrame() {
 
     ctx.drawImage(video, 0, 0, width, height);
 
+    ctx.restore();
+
     canvas.toBlob((blob) => {
         console.log("Captured image blob ready:", blob);
         const photoUrl = URL.createObjectURL(blob);
         window.open(photoUrl, '_blank');
     }, 'image/jpeg', 0.85);
+}
+
+function runTimerSequence(seconds) {
+    let remaining = seconds;
+    snapBtn.disabled = true;
+    timerBtn.disabled = true;
+
+    const interval = setInterval(() => {
+        remaining--;
+        if (remaining <= 0) {
+            clearInterval(interval);
+            snapBtn.disabled = false;
+            timerBtn.disabled = false;
+            captureCompositeFrame();
+        }
+    }, 1000);
 }
 
 // listeners to make the buttons work
