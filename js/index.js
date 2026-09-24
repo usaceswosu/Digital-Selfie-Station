@@ -5,11 +5,12 @@ const video = document.getElementById('webcam');
 const snapBtn = document.getElementById('snapBtn');
 const timerBtn = document.getElementById('timerBtn');
 const flipBtn = document.getElementById('flipBtn');
+const countdown = document.getElementById('countdown');
 const canvas = document.createElement('canvas');
 
 async function startCamera(facingMode) {
     if (activeStream) {
-      activeStream.getTracks().forEach(track => track.stop());
+        activeStream.getTracks().forEach(track => track.stop());
     }
 
     const constraints = {
@@ -30,26 +31,46 @@ async function startCamera(facingMode) {
     }
 }
 
-// captures camera view
+// Captures camera view matching the viewfinder display
 function captureCompositeFrame() {
     if (!activeStream) return;
 
-    const width = video.videoWidth || 1280;
-    const height = video.videoHeight || 720;
-    canvas.width = width; 
-    canvas.height = height;
+    const videoWidth = video.videoWidth || 1280;
+    const videoHeight = video.videoHeight || 720;
+    const displayRect = video.getBoundingClientRect();
+    const displayWidth = displayRect.width || 300;
+    const displayHeight = displayRect.height || 400;
+    
+    canvas.width = displayWidth * 2; 
+    canvas.height = displayHeight * 2;
 
     const ctx = canvas.getContext('2d');
 
-    // mirror camera for selfie mode
+    // Mirror camera for selfie mode
     ctx.save();
-
     if (currentFacingMode === 'user') {
-        ctx.translate(width, 0);
+        ctx.translate(canvas.width, 0);
         ctx.scale(-1, 1);
     }
 
-    ctx.drawImage(video, 0, 0, width, height);
+    const videoRatio = videoWidth / videoHeight;
+    const displayRatio = displayWidth / displayHeight;
+
+    let sWidth, sHeight, sX, sY;
+
+    if (videoRatio > displayRatio) {
+        sHeight = videoHeight;
+        sWidth = videoHeight * displayRatio;
+        sX = (videoWidth - sWidth) / 2;
+        sY = 0;
+    } else {
+        sWidth = videoWidth;
+        sHeight = videoWidth / displayRatio;
+        sX = 0;
+        sY = (videoHeight - sHeight) / 2;
+    }
+
+    ctx.drawImage(video, sX, sY, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
 
     ctx.restore();
 
@@ -72,7 +93,7 @@ function runTimerSequence(seconds) {
             countdown.innerText = remaining;
         } else {
             clearInterval(interval);
-            countdown.innerText = ''
+            countdown.innerText = '';
             snapBtn.disabled = false;
             timerBtn.disabled = false;
             captureCompositeFrame();
@@ -80,7 +101,7 @@ function runTimerSequence(seconds) {
     }, 1000);
 }
 
-// listeners to make the buttons work
+// Event listeners
 snapBtn.addEventListener('click', captureCompositeFrame);
 timerBtn.addEventListener('click', () => runTimerSequence(5));
 flipBtn.addEventListener('click', () => {
@@ -88,9 +109,4 @@ flipBtn.addEventListener('click', () => {
     startCamera(currentFacingMode);
 });
 
-
 startCamera(currentFacingMode);
-
-// needs change orientation, overlay selection, proper mobile scaling, countdown overlay for timer
-
-// other todos: consent form, supabase backend for storing images. I'd to get finished with the easier stuff early so I can have some fun with the overlays, maybe with AR/filters etc.
