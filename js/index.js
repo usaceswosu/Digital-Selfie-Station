@@ -85,6 +85,7 @@ function runTimerSequence(seconds) {
     let remaining = seconds;
     snapBtn.disabled = true;
     timerBtn.disabled = true;
+    flipBtn.disabled = true;
     countdown.innerText = remaining;
 
     const interval = setInterval(() => {
@@ -96,6 +97,7 @@ function runTimerSequence(seconds) {
             countdown.innerText = '';
             snapBtn.disabled = false;
             timerBtn.disabled = false;
+            flipBtn.disabled = false;
             captureCompositeFrame();
         }
     }, 1000);
@@ -110,3 +112,7 @@ flipBtn.addEventListener('click', () => {
 });
 
 startCamera(currentFacingMode);
+
+ // overlay selection,  make it pretty
+
+// other todos: consent form, supabase backend for storing images. I'd like to get finished with the easier stuff early so I can have some fun with the overlays, maybe with AR/filters etc. 

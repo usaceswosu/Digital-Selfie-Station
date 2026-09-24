@@ -15,16 +15,18 @@
     <div class="viewfinder">
         <video id="webcam" autoplay playsinline muted></video>
 
-        <div class="overlay-layer">
-            <div class="overlay-badge">Take a Picture!</div>
-        </div>
-
         <div id="countdown" class="countdown-display"></div>
-        
+
         <div class="controls">
-            <button id="flipBtn" class="btn-flip" title="Switch Camera">Switch</button>
-            <button id="snapBtn" class="btn-snap">Snap Photo</button>
-            <button id="timerBtn" class="btn-timer">5s Timer</button>
+            <button id="flipBtn" class="btn-icon" title="Switch Camera">
+                <img src="assets/flip.svg" alt="Flip Camera">
+            </button>
+            <button id="snapBtn" class="btn-icon btn-large" title="Take Picture">
+                <img src="assets/capture.svg" alt="Snap Photo">
+            </button>
+            <button id="timerBtn" class="btn-icon" title="5s Timer">
+                <img src="assets/timer.svg" alt="Timer">
+            </button>
         </div>
     </div>
 </body>
