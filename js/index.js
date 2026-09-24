@@ -64,11 +64,15 @@ function runTimerSequence(seconds) {
     let remaining = seconds;
     snapBtn.disabled = true;
     timerBtn.disabled = true;
+    countdown.innerText = remaining;
 
     const interval = setInterval(() => {
         remaining--;
-        if (remaining <= 0) {
+        if (remaining > 0) {
+            countdown.innerText = remaining;
+        } else {
             clearInterval(interval);
+            countdown.innerText = ''
             snapBtn.disabled = false;
             timerBtn.disabled = false;
             captureCompositeFrame();
@@ -86,3 +90,7 @@ flipBtn.addEventListener('click', () => {
 
 
 startCamera(currentFacingMode);
+
+// needs change orientation, overlay selection, proper mobile scaling, countdown overlay for timer
+
+// other todos: consent form, supabase backend for storing images. I'd to get finished with the easier stuff early so I can have some fun with the overlays, maybe with AR/filters etc.
