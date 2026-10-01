@@ -5,18 +5,42 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 0;
-    padding: 20px;
+    justify-content: center;
+    margin: 0px;
+    padding: 0px;
+    width: 100vw;
+    height: 100dvh;
+    overflow: hidden;
+}
+
+header {
+    display: none;
 }
 
 .viewfinder {
     position: relative;
     width: 100%;
-    max-width: 480px;
+    height: 100dvh;
+    max-width: min(100vw, calc(100dvh * (9 / 16)));
+    max-height: 100dvh;
     aspect-ratio: 9 / 16;
     background: #000000;
-    border-radius: 12px;
     overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+@media (orientation: landscape) {
+    body {
+        flex-direction: row;
+        padding: 0px;
+    }
+    .viewfinder {
+        width: 100dvw;
+        height: 100%;
+        max-width: 100dvw;
+        max-height: min(100dvh, calc(100dvw * (16 / 9)));
+        aspect-ratio: 16 / 9;
+    }
 }
 
 video {
@@ -34,41 +58,59 @@ video {
     pointer-events: none;
 }
 
-  .overlay-badge {
-    display: inline-block;
-    background: rgba(0, 0, 0, 0.6);
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-weight: bold;
+.countdown-display {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10rem;
+    font-weight: 800;
+    color: #ffffff;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+    z-index: 10;
 }
 
 .controls {
     position: absolute;
-    bottom: 12px;
-    left: 12px;
-    right: 12px;
+    bottom: 24px;
+    left: 16px;
+    right: 16px;
     display: flex;
-    gap: 8px;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 10;
 }
 
-button {
-    flex: 1;
-    padding: 12px;
+button.btn-icon {
+    background: transparent;
     border: none;
-    border-radius: 8px;
-    font-weight: bold;
+    padding: 0;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
-.btn-snap {
-    background: #22c53d; 
-    color: #000000; 
+button.btn-icon img {
+    width: 96px; /* Adjust size to your preference */
+    height: 96px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5)); /* Adds nice pop-out shadow */
 }
-.btn-timer { 
-    background: #155ccf; 
-    color: #ffffff; 
+
+button.btn-large img {
+    width: 256px;
+    height: 256px;
 }
-.btn-flip { 
-    flex: 0.3; 
-    background: #333333; 
-    color: #ffffff; }
+
+button.btn-icon:active {
+    transform: scale(0.90);
+}
+
+button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
