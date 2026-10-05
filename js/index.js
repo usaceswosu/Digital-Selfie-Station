@@ -113,6 +113,6 @@ flipBtn.addEventListener('click', () => {
 
 startCamera(currentFacingMode);
 
- // overlay selection,  make it pretty
+ // picture retake/submit page, overlay selection
 
 // other todos: consent form, supabase backend for storing images. I'd like to get finished with the easier stuff early so I can have some fun with the overlays, maybe with AR/filters etc. 
