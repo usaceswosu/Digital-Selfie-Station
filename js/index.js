@@ -111,7 +111,6 @@ flipBtn.addEventListener('click', () => {
     startCamera(currentFacingMode);
 });
 
-startCamera(currentFacingMode);
 
  // picture retake/submit page, overlay selection
 
