@@ -15,9 +15,14 @@ const retakeBtn = document.getElementById('retakeBtn');
 let capturedBlob = null;
 
 async function startCamera(facingMode) {
+    if (activeStream) {
+        activeStream.getTracks().forEach(track => track.stop());
+        activeStream = null;
+    }
+
     const constraints = {
         video: {
-            facingMode: { exact: facingMode },
+            facingMode: { ideal: facingMode },
             width: { ideal: 1920 },
             height: { ideal: 1080 }
         },
@@ -25,29 +30,18 @@ async function startCamera(facingMode) {
     };
 
     try {
-        const newStream = await navigator.mediaDevices.getUserMedia(constraints);
-        if (activeStream) {
-            activeStream.getTracks().forEach(track => track.stop());
-        }
-        activeStream = newStream;
+        activeStream = await navigator.mediaDevices.getUserMedia(constraints);
         video.srcObject = activeStream;
     } catch (err) {
-        console.warn("Exact facingMode failed, falling back to ideal:", err);
-        
-        // fallback constraint if device doesnt support exact for the requested camera
+        console.error("Camera access error:", err); 
         try {
-            const fallbackConstraints = {
-                video: { facingMode: { ideal: facingMode }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+            activeStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: facingMode } },
                 audio: false
-            };
-            const fallbackStream = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
-            if (activeStream) {
-                activeStream.getTracks().forEach(track => track.stop());
-            }
-            activeStream = fallbackStream;
+            });
             video.srcObject = activeStream;
         } catch (fallbackErr) {
-            console.error("Camera access error:", fallbackErr);
+            console.error("Fallback camera error:", fallbackErr);
             alert("Unable to access camera. Please check browser permissions.");
         }
     }
