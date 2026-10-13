@@ -15,20 +15,16 @@ const retakeBtn = document.getElementById('retakeBtn');
 let capturedBlob = null;
 
 async function startCamera(facingMode) {
-    if (activeStream) {
-        activeStream.getTracks().forEach(track => track.stop());
-    }
-
     const constraints = {
         video: {
-            facingMode: { ideal: facingMode },
+            facingMode: { exact: facingMode },
             width: { ideal: 1920 },
             height: { ideal: 1080 }
         },
         audio: false
     };
 
-try {
+    try {
         const newStream = await navigator.mediaDevices.getUserMedia(constraints);
         if (activeStream) {
             activeStream.getTracks().forEach(track => track.stop());
@@ -36,8 +32,24 @@ try {
         activeStream = newStream;
         video.srcObject = activeStream;
     } catch (err) {
-        console.error("Camera access error:", err);
-        alert("Unable to access camera. Please check browser permissions.");
+        console.warn("Exact facingMode failed, falling back to ideal:", err);
+        
+        // fallback constraint if device doesnt support exact for the requested camera
+        try {
+            const fallbackConstraints = {
+                video: { facingMode: { ideal: facingMode }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+                audio: false
+            };
+            const fallbackStream = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
+            if (activeStream) {
+                activeStream.getTracks().forEach(track => track.stop());
+            }
+            activeStream = fallbackStream;
+            video.srcObject = activeStream;
+        } catch (fallbackErr) {
+            console.error("Camera access error:", fallbackErr);
+            alert("Unable to access camera. Please check browser permissions.");
+        }
     }
 }
 
@@ -114,15 +126,13 @@ function runTimerSequence(seconds) {
 }
 
 function preview() {
-    if (!video.srcObject) return;
+if (!video.srcObject) return;
 
     const videoWidth = video.videoWidth || 1280;
     const videoHeight = video.videoHeight || 720;
-    const displayRect = video.getBoundingClientRect();
     
-    // Fallback to window dimensions if bounding rect is 0
-    const displayWidth = displayRect.width || window.innerWidth;
-    const displayHeight = displayRect.height || window.innerHeight;
+    const displayWidth = video.clientWidth || window.innerWidth;
+    const displayHeight = video.clientHeight || window.innerHeight;
 
     canvas.width = displayWidth * 2; 
     canvas.height = displayHeight * 2;
