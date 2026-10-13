@@ -32,9 +32,9 @@ header {
 @media (orientation: landscape) {
     .viewfinder {
         width: 100dvw;
-        height: 100%;
+        height: 100dvh;
         max-width: 100dvw;
-        max-height: min(100dvh, calc(100dvw * (16 / 9)));
+        max-height: 100dvh;
         aspect-ratio: 16 / 9;
     }
 }
@@ -92,10 +92,10 @@ button.btn-icon {
 }
 
 button.btn-icon img {
-    width: 96px; /* Adjust size to your preference */
+    width: 96px;
     height: 96px;
     object-fit: contain;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5)); /* Adds nice pop-out shadow */
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
 }
 
 button.btn-large img {
@@ -149,7 +149,7 @@ button:disabled {
     height: auto;
     max-height: 70vh;
     border-radius: 10px;
-    object-fit: cover;
+    object-fit: contain;
     border: 1px solid rgba(255, 255, 255, 0.1);
     margin-bottom: 16px;
 }

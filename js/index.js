@@ -28,8 +28,12 @@ async function startCamera(facingMode) {
         audio: false
     };
 
-    try {
-        activeStream = await navigator.mediaDevices.getUserMedia(constraints);
+try {
+        const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+        if (activeStream) {
+            activeStream.getTracks().forEach(track => track.stop());
+        }
+        activeStream = newStream;
         video.srcObject = activeStream;
     } catch (err) {
         console.error("Camera access error:", err);
