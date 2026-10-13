@@ -20,11 +20,17 @@ async function startCamera(facingMode) {
         activeStream = null;
     }
 
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    const isLandscape = window.innerWidth > window.innerHeight;
+    const targetWidth = isLandscape ? 1920 : 1080;
+    const targetHeight = isLandscape ? 1080 : 1920;
+
     const constraints = {
         video: {
             facingMode: { ideal: facingMode },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 }
+            width: { ideal: targetWidth },
+            height: { ideal: targetHeight }
         },
         audio: false
     };
@@ -33,7 +39,7 @@ async function startCamera(facingMode) {
         activeStream = await navigator.mediaDevices.getUserMedia(constraints);
         video.srcObject = activeStream;
     } catch (err) {
-        console.error("Camera access error:", err); 
+        console.warn("Target resolution failed, trying basic constraints:", err);
         try {
             activeStream = await navigator.mediaDevices.getUserMedia({
                 video: { facingMode: { ideal: facingMode } },
@@ -41,7 +47,7 @@ async function startCamera(facingMode) {
             });
             video.srcObject = activeStream;
         } catch (fallbackErr) {
-            console.error("Fallback camera error:", fallbackErr);
+            console.error("Camera access error:", fallbackErr);
             alert("Unable to access camera. Please check browser permissions.");
         }
     }
@@ -120,20 +126,26 @@ function runTimerSequence(seconds) {
 }
 
 function preview() {
-if (!video.srcObject) return;
+    if (!video.srcObject) return;
 
-    const videoWidth = video.videoWidth || 1280;
-    const videoHeight = video.videoHeight || 720;
-    
+    const isLandscape = window.innerWidth > window.innerHeight;
+
+    // Force canvas dimensions to explicitly match device orientation layout
     const displayWidth = video.clientWidth || window.innerWidth;
     const displayHeight = video.clientHeight || window.innerHeight;
 
-    canvas.width = displayWidth * 2; 
-    canvas.height = displayHeight * 2;
+    if (isLandscape) {
+        canvas.width = Math.max(displayWidth, displayHeight) * 2;
+        canvas.height = Math.min(displayWidth, displayHeight) * 2;
+    } else {
+        canvas.width = Math.min(displayWidth, displayHeight) * 2;
+        canvas.height = Math.max(displayWidth, displayHeight) * 2;
+    }
 
+    const videoWidth = video.videoWidth || 1280;
+    const videoHeight = video.videoHeight || 720;
     const ctx = canvas.getContext('2d');
 
-    // Mirror camera for selfie mode
     ctx.save();
     if (currentFacingMode === 'user') {
         ctx.translate(canvas.width, 0);
@@ -184,16 +196,10 @@ submitPhotoBtn.addEventListener('click', () => {
 
 window.addEventListener('orientationchange', () => {
     setTimeout(() => {
-        if (activeStream && typeof startCamera === 'function') {
+        if (activeStream) {
             startCamera(currentFacingMode);
         }
-    }, 300);
-});
-window.addEventListener('resize', () => {
-    const displayRect = video.getBoundingClientRect();
-    if (displayRect.width > 0 && displayRect.height > 0) {
-        console.log("Viewfinder resized to:", displayRect.width, displayRect.height);
-    }
+    }, 400);
 });
  // overlay selection, fix weird mobile bugs
 

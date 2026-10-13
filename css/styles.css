@@ -32,9 +32,9 @@ header {
 @media (orientation: landscape) {
     .viewfinder {
         width: 100dvw;
-        height: 100dvh;
+        height: 100vw;
         max-width: 100dvw;
-        max-height: 100dvh;
+        max-height: min(100dvh, calc(100dvw * (9 / 16)));
         aspect-ratio: 16 / 9;
     }
 }
