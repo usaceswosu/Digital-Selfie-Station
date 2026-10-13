@@ -173,6 +173,20 @@ submitPhotoBtn.addEventListener('click', () => {
     // You can send dataUrl or convert to a blob for uploading here
     photoReviewModal.style.display = 'none';
 });
- // picture retake/submit page, overlay selection
 
-// other todos: consent form, supabase backend for storing images. I'd like to get finished with the easier stuff early so I can have some fun with the overlays, maybe with AR/filters etc. 
+window.addEventListener('orientationchange', () => {
+    setTimeout(() => {
+        if (activeStream && typeof startCamera === 'function') {
+            startCamera(currentFacingMode);
+        }
+    }, 300);
+});
+window.addEventListener('resize', () => {
+    const displayRect = video.getBoundingClientRect();
+    if (displayRect.width > 0 && displayRect.height > 0) {
+        console.log("Viewfinder resized to:", displayRect.width, displayRect.height);
+    }
+});
+ // overlay selection, fix weird mobile bugs
+
+// other todos: make consent form pretty, supabase backend for storing images. I'd like to get finished with the easier stuff early so I can have some fun with the overlays, maybe with AR/filters etc. 
