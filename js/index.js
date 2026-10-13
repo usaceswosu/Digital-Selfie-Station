@@ -46,7 +46,7 @@ function captureCompositeFrame() {
     const displayRect = video.getBoundingClientRect();
     const displayWidth = displayRect.width || 300;
     const displayHeight = displayRect.height || 400;
-    
+
     canvas.width = displayWidth * 2; 
     canvas.height = displayHeight * 2;
 
@@ -126,11 +126,11 @@ function preview() {
     const ctx = canvas.getContext('2d');
 
     // Mirror camera for selfie mode
-    ctx.save();
-    if (currentFacingMode === 'user') {
-        ctx.translate(canvas.width, 0);
-        ctx.scale(-1, 1);
-    }
+    // ctx.save();
+    // if (currentFacingMode === 'user') {
+    //     ctx.translate(canvas.width, 0);
+    //     ctx.scale(-1, 1);
+    // }
 
     const videoRatio = videoWidth / videoHeight;
     const displayRatio = canvas.width / canvas.height; 
@@ -150,7 +150,8 @@ function preview() {
     }
 
     ctx.drawImage(video, sX, sY, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
-    ctx.restore();
+    // ctx.restore();
+
 
     const dataUrl = canvas.toDataURL('image/jpeg', 0.90);
     photoPreviewImg.src = dataUrl;
@@ -163,16 +164,18 @@ flipBtn.addEventListener('click', () => {
     currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
     startCamera(currentFacingMode);
 });
+
 snapBtn.addEventListener('click', () => preview());
 retakeBtn.addEventListener('click', () => {
     photoReviewModal.style.display = 'none';
     photoPreviewImg.src = '';
 });
+
 submitPhotoBtn.addEventListener('click', () => {
     alert("Photo submitted successfully!");
     // You can send dataUrl or convert to a blob for uploading here
     photoReviewModal.style.display = 'none';
 });
- // picture retake/submit page, overlay selection
+ // overlay selection, fix weird mobile bugs
 
-// other todos: consent form, supabase backend for storing images. I'd like to get finished with the easier stuff early so I can have some fun with the overlays, maybe with AR/filters etc. 
+// other todos: make consent form pretty, supabase backend for storing images. I'd like to get finished with the easier stuff early so I can have some fun with the overlays, maybe with AR/filters etc. 
