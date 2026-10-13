@@ -17,20 +17,13 @@ let capturedBlob = null;
 async function startCamera(facingMode) {
     if (activeStream) {
         activeStream.getTracks().forEach(track => track.stop());
-        activeStream = null;
     }
-
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    const isLandscape = window.innerWidth > window.innerHeight;
-    const targetWidth = isLandscape ? 1920 : 1080;
-    const targetHeight = isLandscape ? 1080 : 1920;
 
     const constraints = {
         video: {
             facingMode: { ideal: facingMode },
-            width: { ideal: targetWidth },
-            height: { ideal: targetHeight }
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
         },
         audio: false
     };
@@ -39,17 +32,8 @@ async function startCamera(facingMode) {
         activeStream = await navigator.mediaDevices.getUserMedia(constraints);
         video.srcObject = activeStream;
     } catch (err) {
-        console.warn("Target resolution failed, trying basic constraints:", err);
-        try {
-            activeStream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: { ideal: facingMode } },
-                audio: false
-            });
-            video.srcObject = activeStream;
-        } catch (fallbackErr) {
-            console.error("Camera access error:", fallbackErr);
-            alert("Unable to access camera. Please check browser permissions.");
-        }
+        console.error("Camera access error:", err);
+        alert("Unable to access camera. Please check browser permissions.");
     }
 }
 
@@ -62,7 +46,7 @@ function captureCompositeFrame() {
     const displayRect = video.getBoundingClientRect();
     const displayWidth = displayRect.width || 300;
     const displayHeight = displayRect.height || 400;
-    
+
     canvas.width = displayWidth * 2; 
     canvas.height = displayHeight * 2;
 
@@ -128,24 +112,20 @@ function runTimerSequence(seconds) {
 function preview() {
     if (!video.srcObject) return;
 
-    const isLandscape = window.innerWidth > window.innerHeight;
-
-    // Force canvas dimensions to explicitly match device orientation layout
-    const displayWidth = video.clientWidth || window.innerWidth;
-    const displayHeight = video.clientHeight || window.innerHeight;
-
-    if (isLandscape) {
-        canvas.width = Math.max(displayWidth, displayHeight) * 2;
-        canvas.height = Math.min(displayWidth, displayHeight) * 2;
-    } else {
-        canvas.width = Math.min(displayWidth, displayHeight) * 2;
-        canvas.height = Math.max(displayWidth, displayHeight) * 2;
-    }
-
     const videoWidth = video.videoWidth || 1280;
     const videoHeight = video.videoHeight || 720;
+    const displayRect = video.getBoundingClientRect();
+    
+    // Fallback to window dimensions if bounding rect is 0
+    const displayWidth = displayRect.width || window.innerWidth;
+    const displayHeight = displayRect.height || window.innerHeight;
+
+    canvas.width = displayWidth * 2; 
+    canvas.height = displayHeight * 2;
+
     const ctx = canvas.getContext('2d');
 
+    // Mirror camera for selfie mode
     ctx.save();
     if (currentFacingMode === 'user') {
         ctx.translate(canvas.width, 0);
@@ -183,23 +163,17 @@ flipBtn.addEventListener('click', () => {
     currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
     startCamera(currentFacingMode);
 });
+
 snapBtn.addEventListener('click', () => preview());
 retakeBtn.addEventListener('click', () => {
     photoReviewModal.style.display = 'none';
     photoPreviewImg.src = '';
 });
+
 submitPhotoBtn.addEventListener('click', () => {
     alert("Photo submitted successfully!");
     // You can send dataUrl or convert to a blob for uploading here
     photoReviewModal.style.display = 'none';
-});
-
-window.addEventListener('orientationchange', () => {
-    setTimeout(() => {
-        if (activeStream) {
-            startCamera(currentFacingMode);
-        }
-    }, 400);
 });
  // overlay selection, fix weird mobile bugs
 

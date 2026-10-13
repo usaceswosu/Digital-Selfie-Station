@@ -30,11 +30,15 @@ header {
 }
 
 @media (orientation: landscape) {
+    body {
+        flex-direction: row;
+        padding: 0px;
+    }
     .viewfinder {
         width: 100dvw;
-        height: 100vw;
+        height: 100%;
         max-width: 100dvw;
-        max-height: min(100dvh, calc(100dvw * (9 / 16)));
+        max-height: min(100dvh, calc(100dvw * (16 / 9)));
         aspect-ratio: 16 / 9;
     }
 }
@@ -43,7 +47,6 @@ video {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transform: none;
 }
 
 .overlay-layer {
@@ -92,10 +95,10 @@ button.btn-icon {
 }
 
 button.btn-icon img {
-    width: 96px;
+    width: 96px; /* Adjust size to your preference */
     height: 96px;
     object-fit: contain;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5)); /* Adds nice pop-out shadow */
 }
 
 button.btn-large img {
@@ -149,7 +152,7 @@ button:disabled {
     height: auto;
     max-height: 70vh;
     border-radius: 10px;
-    object-fit: contain;
+    object-fit: cover;
     border: 1px solid rgba(255, 255, 255, 0.1);
     margin-bottom: 16px;
 }
