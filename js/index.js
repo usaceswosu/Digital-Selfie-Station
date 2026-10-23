@@ -131,17 +131,6 @@ function preview() {
 
     const ctx = canvas.getContext('2d');
 
-    const scale = 2;
-    
-    // Explicitly set aspect shape based on orientation
-    if (isLandscape) {
-        canvas.width = Math.max(displayWidth, displayHeight) * scale;
-        canvas.height = Math.min(displayWidth, displayHeight) * scale;
-    } else {
-        canvas.width = Math.min(displayWidth, displayHeight) * scale;
-        canvas.height = Math.max(displayWidth, displayHeight) * scale;
-    }
-
     // Mirror camera for selfie mode
     ctx.save();
     if (currentFacingMode === 'user') {
