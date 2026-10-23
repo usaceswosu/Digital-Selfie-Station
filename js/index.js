@@ -28,6 +28,12 @@ async function startCamera(facingMode) {
         audio: false
     };
 
+    if (facingMode === 'user') {
+            video.style.transform = 'scaleX(-1)';
+        } else {
+            video.style.transform = 'none';
+        }
+        
     try {
         activeStream = await navigator.mediaDevices.getUserMedia(constraints);
         video.srcObject = activeStream;
