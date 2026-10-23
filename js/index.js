@@ -31,15 +31,15 @@ async function startCamera(facingMode) {
     try {
         activeStream = await navigator.mediaDevices.getUserMedia(constraints);
         video.srcObject = activeStream;
+        if (facingMode === 'user') {
+            video.style.transform = 'scaleX(-1)';
+        } else {
+            video.style.transform = 'none';
+        }
+
     } catch (err) {
         console.error("Camera access error:", err);
         alert("Unable to access camera. Please check browser permissions.");
-    }
-
-    if (facingMode === 'user') {
-        video.style.transform = 'scaleX(-1)';
-    } else {
-        video.style.transform = 'none';
     }
 }
 
@@ -141,7 +141,7 @@ function preview() {
         canvas.width = Math.min(displayWidth, displayHeight) * scale;
         canvas.height = Math.max(displayWidth, displayHeight) * scale;
     }
-    
+
     // Mirror camera for selfie mode
     ctx.save();
     if (currentFacingMode === 'user') {
