@@ -42,6 +42,21 @@
         </form>
     </dialog>
 
+    <div id="overlayModal" class="review-overlay" style="display: none;">
+        <div class="review-card">
+            <h3>Choose an Overlay</h3>
+            <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 16px;">Select an overlay for your photo.</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; margin-bottom: 16px;">
+                <button class="btn-secondary overlay-choice selected" data-overlay="none">None (Clean)</button>
+                <button class="btn-secondary overlay-choice" data-overlay="assets/overlay1.png">Classic Frame</button>
+                <button class="btn-secondary overlay-choice" data-overlay="assets/overlay2.png">Event Badge</button>
+            </div>
+
+            <button id="closeOverlayModal" class="btn-primary" style="width: 100%;">Confirm Selection</button>
+        </div>
+    </div>
+
     <!-- Camera -->
     <div class="viewfinder" id="cameraBooth" style="display: none;">
         <video id="webcam" autoplay playsinline muted></video>
@@ -60,7 +75,11 @@
                 </div>
             </div>
         </div>
-
+        <div class="swap-overlay">
+            <button id="overlayBtn" class="btn-icon" title="Choose Overlay">
+                <img src="assets/overlay.svg" alt="Overlay">
+            </button>
+        </div>
         <div class="controls">
             <button id="flipBtn" class="btn-icon" title="Switch Camera">
                 <img src="assets/flip.svg" alt="Flip Camera">

@@ -182,3 +182,9 @@ button:disabled {
     background: #22c53d;
     color: #000000;
 }
+
+.overlay-choice.selected {
+    background: #22c53d !important;
+    color: #000000 !important;
+    font-weight: bold;
+}
