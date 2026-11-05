@@ -2,43 +2,40 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Photo Booth</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/popstyle.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="js/supabase-upload.js" defer></script>
     <script src="js/index.js" defer></script>
 </head>
-
 <body>
-    <header>
-        <h2>Photo Booth</h2>
-    </header>
+    <header><h2>Photo Booth</h2></header>
 
-    <!-- Consent -->
     <main class="page" id="consentScreen">
         <p class="eyebrow">DIGITAL SELFIE</p>
         <h1>Photo consent</h1>
-        <p>This page contains only the consent popup. The photo-taking part can be connected later.</p>
-
-        <button class="primary-button" id="openConsent" type="button">
-        Preview consent popup
-        </button>
-
+        <p>Choose whether to share your photo before opening the camera.</p>
+        <button class="primary-button" id="openConsent" type="button">Choose photo consent</button>
         <p class="status" id="status" role="status" aria-live="polite"></p>
     </main>
 
-    <!-- Consent Dialog -->
     <dialog id="consentDialog" aria-labelledby="dialogTitle" aria-describedby="dialogDescription">
         <form method="dialog" class="dialog-card">
-        <p class="eyebrow">ONE QUICK QUESTION</p>
-        <h2 id="dialogTitle">May the company use this photo?</h2>
-        <p id="dialogDescription">
-            Please choose yes or no. Choosing "yes" means the company may use your photo for company publications. Choosing "no" means your photo will be discarded. 
-        </p>
-
-        <div class="actions">
-            <button class="primary-button" id="yesButton" value="yes">Yes, you may use it</button>
-            <button class="secondary-button" id="noButton" value="no">No, please don’t</button>
-        </div>
+            <p class="eyebrow">ONE QUICK QUESTION</p>
+            <h2 id="dialogTitle">May the company use this photo?</h2>
+            <!-- Replace these details before using the booth with visitors. -->
+            <p id="dialogDescription">
+                [Company name] would like to use your photo for [specific purpose],
+                where it could appear [locations or channels], and keep it for [retention period].
+                You can take a photo with either choice.
+            </p>
+            <div class="actions">
+                <button class="primary-button" id="yesButton" value="yes">Yes, you may use it</button>
+                <button class="secondary-button" id="noButton" value="no">No, please don’t</button>
+            </div>
+            <p class="fine-print">If you choose yes, pressing Submit uploads your photo for the use described above.</p>
         </form>
     </dialog>
 
@@ -60,19 +57,17 @@
     <!-- Camera -->
     <div class="viewfinder" id="cameraBooth" style="display: none;">
         <video id="webcam" autoplay playsinline muted></video>
-
         <div id="countdown" class="countdown-display"></div>
-
         <canvas id="snapshotCanvas" style="display: none;"></canvas>
         <div id="photoReviewModal" class="review-overlay" style="display: none;">
             <div class="review-card">
                 <h3>Lookin' Good!</h3>
                 <img id="photoPreviewImg" alt="Captured Selfie">
-                
                 <div class="review-actions">
-                    <button id="retakeBtn" class="btn-secondary">Retake</button>
-                    <button id="submitPhotoBtn" class="btn-primary">Submit</button>
+                    <button id="retakeBtn" class="btn-secondary" type="button">Retake</button>
+                    <button id="submitPhotoBtn" class="btn-primary" type="button">Submit</button>
                 </div>
+                <p id="uploadStatus" role="status" aria-live="polite"></p>
             </div>
         </div>
         <div class="swap-overlay">
@@ -81,51 +76,97 @@
             </button>
         </div>
         <div class="controls">
-            <button id="flipBtn" class="btn-icon" title="Switch Camera">
+            <button id="flipBtn" class="btn-icon" title="Switch Camera" type="button">
                 <img src="assets/flip.svg" alt="Flip Camera">
             </button>
-            <button id="snapBtn" class="btn-icon btn-large" title="Take Picture">
+            <button id="snapBtn" class="btn-icon btn-large" title="Take Picture" type="button">
                 <img src="assets/capture.svg" alt="Snap Photo">
             </button>
-            <button id="timerBtn" class="btn-icon" title="5s Timer">
+            <button id="timerBtn" class="btn-icon" title="5s Timer" type="button">
                 <img src="assets/timer.svg" alt="Timer">
             </button>
         </div>
     </div>
 
-    <!-- Swap Script-->
     <script>
-        const consentDialog = document.querySelector('#consentDialog');
-        const consentScreen = document.querySelector('#consentScreen');
-        const cameraBooth = document.querySelector('#cameraBooth');
-    
         window.addEventListener('DOMContentLoaded', () => {
+            const consentDialog = document.querySelector('#consentDialog');
+            const consentScreen = document.querySelector('#consentScreen');
+            const cameraBooth = document.querySelector('#cameraBooth');
+            const submitButton = document.querySelector('#submitPhotoBtn');
+            const retakeButton = document.querySelector('#retakeBtn');
+            const uploadStatus = document.querySelector('#uploadStatus');
+            let consentGranted = false;
+            let uploading = false;
+            let uploadedPath = null;
+
             consentDialog.showModal();
-        });
 
-        document.querySelector('#openConsent').addEventListener('click', () => {
-            consentDialog.showModal();
-        });
+            document.querySelector('#openConsent').addEventListener('click', () => {
+                consentDialog.showModal();
+            });
 
-        function launchCamera() {
-            consentDialog.close();
-            consentScreen.style.display = 'none';
-            cameraBooth.style.display = 'block';
+            function launchCamera(allowPhotoUse) {
+                consentGranted = allowPhotoUse;
+                consentDialog.close();
+                consentScreen.style.display = 'none';
+                cameraBooth.style.display = 'block';
 
-            if (typeof startCamera === 'function') {
-                startCamera(currentFacingMode);
+                if (typeof startCamera === 'function') {
+                    startCamera(typeof currentFacingMode === 'undefined' ? 'user' : currentFacingMode);
+                }
             }
-        }
-        document.querySelector('#yesButton').addEventListener('click', (e) => {
-            e.preventDefault();
-            launchCamera();
-        });
 
-        document.querySelector('#noButton').addEventListener('click', (e) => {
-            e.preventDefault();
-            launchCamera();
-        });
+            document.querySelector('#yesButton').addEventListener('click', (event) => {
+                event.preventDefault();
+                launchCamera(true);
+            });
 
-</script>
+            document.querySelector('#noButton').addEventListener('click', (event) => {
+                event.preventDefault();
+                launchCamera(false);
+            });
+
+            retakeButton.addEventListener('click', () => {
+                uploadedPath = null;
+                uploadStatus.textContent = '';
+                submitButton.disabled = false;
+                submitButton.textContent = 'Submit';
+            });
+
+            submitButton.addEventListener('click', async () => {
+                if (uploading || uploadedPath) return;
+
+                if (!consentGranted) {
+                    uploadStatus.textContent = 'You chose to keep your photo private. No photo was uploaded.';
+                    return;
+                }
+
+                uploading = true;
+                submitButton.disabled = true;
+                retakeButton.disabled = true;
+                submitButton.textContent = 'Uploading…';
+                uploadStatus.textContent = 'Uploading your photo…';
+
+                try {
+                    // This calls the upload function in js/supabase-upload.js.
+                    uploadedPath = await window.uploadSelfieToSupabase({
+                        canvas: document.querySelector('#snapshotCanvas'),
+                        consentGranted
+                    });
+                    uploadStatus.textContent = 'Your photo was uploaded successfully.';
+                    submitButton.textContent = 'Uploaded';
+                } catch (error) {
+                    console.error('Photo upload failed:', error);
+                    uploadStatus.textContent = `Upload failed. ${error.message || 'Please try again.'}`;
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Try again';
+                } finally {
+                    uploading = false;
+                    retakeButton.disabled = false;
+                }
+            });
+        });
+    </script>
 </body>
 </html>
