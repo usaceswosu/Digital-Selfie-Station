@@ -176,12 +176,6 @@ retakeBtn.addEventListener('click', () => {
     photoReviewModal.style.display = 'none';
     photoPreviewImg.src = '';
 });
-
-submitPhotoBtn.addEventListener('click', () => {
-    alert("Photo submitted successfully!");
-    // You can send dataUrl or convert to a blob for uploading here
-    photoReviewModal.style.display = 'none';
-});
  // overlay selection, fix weird mobile bugs
 
 // other todos: make consent form pretty, supabase backend for storing images. I'd like to get finished with the easier stuff early so I can have some fun with the overlays, maybe with AR/filters etc. 
