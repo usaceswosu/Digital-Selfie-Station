@@ -20,11 +20,11 @@ const loadedOverlayImages = {};
 const liveOverlayPreview = document.getElementById('liveOverlayPreview');
 
 const frameConfigs = {
-    'assets/frame1.png': { x: 0.5, y: 0.14, width: 0.69, height: 0.4 }, // Canton Lake
-    'assets/frame2.png': { x: 0.155, y: 0.14, width: 0.69, height: 0.65 }, // Fort Supply Lake
-    'assets/frame3.png': { x: 0.155, y: 0.14, width: 0.69, height: 0.65 }, // Keystone Lake
-    'assets/frame4.png': { x: 0.155, y: 0.14, width: 0.69, height: 0.65 }, // RFH Visitor Center
-    'assets/frame5.png': { x: 0.155, y: 0.14, width: 0.69, height: 0.65 }  // Mount Corpsmore
+    'assets/frame1.png': { x: 0.09, y: 0.2, width: 0.85, height: 0.85 },
+    'assets/frame2.png': { x: 0.09, y: 0.2, width: 0.85, height: 0.85 },
+    'assets/frame3.png': { x: 0.09, y: 0.2, width: 0.85, height: 0.85 },
+    'assets/frame4.png': { x: 0.09, y: 0.1, width: 0.85, height: 0.85 },
+    'assets/frame5.png': { x: 0.09, y: 0.1, width: 0.85, height: 0.85 }
 };
 
 let capturedBlob = null;
@@ -62,6 +62,34 @@ async function startCamera(facingMode) {
         console.error("Camera access error:", err);
         alert("Unable to access camera. Please check browser permissions.");
     }
+    updateLiveViewfinder();
+}
+
+function updateLiveViewfinder() {
+    const config = frameConfigs[currentOverlay];
+
+    // Reset to full viewfinder when no frame is selected
+    if (!config) {
+        video.style.position = 'absolute';
+        video.style.left = '0%';
+        video.style.top = '0%';
+        video.style.width = '100%';
+        video.style.height = '100%';
+        video.style.clipPath = 'none';
+        video.style.webkitClipPath = 'none';
+        video.style.transform = currentFacingMode === 'user' ? 'scaleX(-1)' : 'none';
+        return;
+    }
+
+    // Size and position <video> directly to the frame cutout window
+    video.style.position = 'absolute';
+    video.style.left = `${(config.x * 100).toFixed(2)}%`;
+    video.style.top = `${(config.y * 100).toFixed(2)}%`;
+    video.style.width = `${(config.width * 100).toFixed(2)}%`;
+    video.style.height = `${(config.height * 100).toFixed(2)}%`;
+    video.style.clipPath = 'none';
+    video.style.webkitClipPath = 'none';
+    video.style.transform = currentFacingMode === 'user' ? 'scaleX(-1)' : 'none';
 }
 
 function runTimerSequence(seconds) {
@@ -213,7 +241,7 @@ frameChoiceBtns.forEach(btn => {
         frameChoiceBtns.forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
         currentOverlay = btn.getAttribute('data-overlay');
-
+        updateLiveViewfinder();
         if (liveOverlayPreview) {
             if (currentOverlay && currentOverlay !== 'none') {
                 liveOverlayPreview.src = currentOverlay;
@@ -235,10 +263,8 @@ if (openOverlayBtn) {
         overlayModal.style.display = 'flex';
     });
 }
-
-closeOverlayModal.addEventListener('click', () => {
-    overlayModal.style.display = 'none';
-});
- // overlay selection, fix weird mobile bugs
+video.addEventListener('loadedmetadata', updateLiveViewfinder);
+window.addEventListener('resize', updateLiveViewfinder);
+// overlay selection, fix weird mobile bugs
 
 // other todos: make consent form pretty, supabase backend for storing images. I'd like to get finished with the easier stuff early so I can have some fun with the overlays, maybe with AR/filters etc. 

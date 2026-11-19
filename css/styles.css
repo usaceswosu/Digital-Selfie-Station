@@ -87,10 +87,9 @@ video {
 }
 #openOverlayBtn {
     position: absolute;
-    top: 50px;
-    right: 50px;
-    z-index: 100;
-    
+    top: 24px;
+    right: 24px;
+    z-index: 20;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -100,7 +99,7 @@ video {
 
 #openOverlayBtn img {
     display: block;
-    filter: brightness(0) invert(1); /* Applies ONLY to the icon to make it clean white */
+    filter: brightness(0) invert(1);
 }
 
 button.btn-icon {
@@ -239,4 +238,76 @@ button:disabled {
     background: #22c55e !important;
     color: #000000 !important;
     font-weight: bold;
+}
+
+.modal-card {
+  display: flex;
+  flex-direction: column;
+  max-height: 92dvh;
+  overflow: hidden;
+}
+
+.preview-media {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0; 
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+#photoReviewModal .review-card {
+    display: flex;
+    flex-direction: column;
+    max-height: 90dvh;
+    overflow: hidden;
+}
+
+#photoReviewModal #photoPreviewImg {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+#photoReviewModal .review-actions {
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+button,
+.btn-primary,
+.btn-secondary {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
+}
+
+button:hover,
+.btn-primary:hover,
+.btn-secondary:hover {
+    box-shadow: 0 3px 9px rgba(0, 0, 0, 0.28);
+}
+
+button.btn-icon {
+    background: rgba(0, 0, 0, 0.16);
+    border-radius: 50%;
+    padding: 4px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.35));
+}
+
+#openOverlayBtn {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    padding: 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
 }
