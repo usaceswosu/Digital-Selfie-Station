@@ -188,3 +188,9 @@ button:disabled {
     color: #000000 !important;
     font-weight: bold;
 }
+
+.frame-choice.selected {
+    background: #22c55e !important;
+    color: #000000 !important;
+    font-weight: bold;
+}
