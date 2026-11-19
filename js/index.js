@@ -1,5 +1,6 @@
 let currentFacingMode = 'environment';
 let activeStream = null;
+let currentOverlay = 'none';
 
 const video = document.getElementById('webcam');
 const snapBtn = document.getElementById('snapBtn');
@@ -11,6 +12,10 @@ const photoReviewModal = document.getElementById('photoReviewModal');
 const photoPreviewImg = document.getElementById('photoPreviewImg');
 const submitPhotoBtn = document.getElementById('submitPhotoBtn');
 const retakeBtn = document.getElementById('retakeBtn');
+const overlayModal = document.getElementById('overlayModal');
+const frameChoiceBtns = document.querySelectorAll('.frame-choice');
+const closeOverlayModal = document.getElementById('closeOverlayModal');
+const openOverlayBtn = document.getElementById('openOverlayBtn');
 
 const frameConfigs = {
     'assets/Canton Lake.png': { x: 100, y: 200, width: 1720, height: 950 },
@@ -169,6 +174,17 @@ function preview() {
     photoPreviewImg.src = dataUrl;
     photoReviewModal.style.display = 'flex';
 }
+
+async function launchPhotoBooth() {
+    consentDialog.close();
+    consentScreen.style.display = 'none';
+    cameraBooth.style.display = 'block';
+
+    await startCamera(currentFacingMode);
+
+    overlayModal.style.display = 'flex';
+}
+
 // Event listeners
 timerBtn.addEventListener('click', () => runTimerSequence(5));
 flipBtn.addEventListener('click', () => {
@@ -181,6 +197,24 @@ retakeBtn.addEventListener('click', () => {
     photoReviewModal.style.display = 'none';
     photoPreviewImg.src = '';
 });
+
+frameChoiceBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        frameChoiceBtns.forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        currentOverlay = btn.getAttribute('data-overlay');
+    });
+});
+
+closeOverlayModal.addEventListener('click', () => {
+    overlayModal.style.display = 'none';
+});
+
+if (openOverlayBtn) {
+    openOverlayBtn.addEventListener('click', () => {
+        overlayModal.style.display = 'flex';
+    });
+}
  // overlay selection, fix weird mobile bugs
 
 // other todos: make consent form pretty, supabase backend for storing images. I'd like to get finished with the easier stuff early so I can have some fun with the overlays, maybe with AR/filters etc. 
