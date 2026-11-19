@@ -72,6 +72,9 @@ video {
     z-index: 10;
 }
 
+#cameraBooth {
+    position: relative;
+}
 .controls {
     position: absolute;
     bottom: 24px;
@@ -81,6 +84,23 @@ video {
     justify-content: space-around;
     align-items: center;
     z-index: 10;
+}
+#openOverlayBtn {
+    position: absolute;
+    top: 50px;
+    right: 50px;
+    z-index: 100;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+}
+
+#openOverlayBtn img {
+    display: block;
+    filter: brightness(0) invert(1); /* Applies ONLY to the icon to make it clean white */
 }
 
 button.btn-icon {
@@ -95,10 +115,10 @@ button.btn-icon {
 }
 
 button.btn-icon img {
-    width: 96px; /* Adjust size to your preference */
+    width: 96px;
     height: 96px;
     object-fit: contain;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5)); /* Adds nice pop-out shadow */
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
 }
 
 button.btn-large img {
