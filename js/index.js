@@ -12,6 +12,14 @@ const photoPreviewImg = document.getElementById('photoPreviewImg');
 const submitPhotoBtn = document.getElementById('submitPhotoBtn');
 const retakeBtn = document.getElementById('retakeBtn');
 
+const frameConfigs = {
+    'assets/Canton Lake.png': { x: 100, y: 200, width: 1720, height: 950 },
+    'assets/Mount Corpsmore.png': { x: 120, y: 140, width: 1680, height: 900 },
+    'assets/Lock 18 RFH.png': { x: 100, y: 120, width: 1750, height: 980 },
+    'assets/Keystone Lake.png': { x: 130, y: 220, width: 1660, height: 900 },
+    'assets/Fort Supply Lake.png': { x: 110, y: 210, width: 1700, height: 920 }
+};
+
 let capturedBlob = null;
 
 async function startCamera(facingMode) {
@@ -41,56 +49,6 @@ async function startCamera(facingMode) {
         console.error("Camera access error:", err);
         alert("Unable to access camera. Please check browser permissions.");
     }
-}
-
-// Captures camera view matching the viewfinder display
-function captureCompositeFrame() {
-    if (!activeStream) return;
-
-    const videoWidth = video.videoWidth || 1280;
-    const videoHeight = video.videoHeight || 720;
-    const displayRect = video.getBoundingClientRect();
-    const displayWidth = displayRect.width || 300;
-    const displayHeight = displayRect.height || 400;
-
-    canvas.width = displayWidth * 2; 
-    canvas.height = displayHeight * 2;
-
-    const ctx = canvas.getContext('2d');
-
-    // Mirror camera for selfie mode
-    ctx.save();
-    if (currentFacingMode === 'user') {
-        ctx.translate(canvas.width, 0);
-        ctx.scale(-1, 1);
-    }
-
-    const videoRatio = videoWidth / videoHeight;
-    const displayRatio = displayWidth / displayHeight;
-
-    let sWidth, sHeight, sX, sY;
-
-    if (videoRatio > displayRatio) {
-        sHeight = videoHeight;
-        sWidth = videoHeight * displayRatio;
-        sX = (videoWidth - sWidth) / 2;
-        sY = 0;
-    } else {
-        sWidth = videoWidth;
-        sHeight = videoWidth / displayRatio;
-        sX = 0;
-        sY = (videoHeight - sHeight) / 2;
-    }
-
-    ctx.drawImage(video, sX, sY, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
-
-    ctx.restore();
-
-    canvas.toBlob((blob) => {
-        console.log("Captured image blob ready:", blob);
-        const photoUrl = URL.createObjectURL(blob);
-        window.open(photoUrl, '_blank');
-    }, 'image/jpeg', 0.85);
 }
 
 function runTimerSequence(seconds) {
