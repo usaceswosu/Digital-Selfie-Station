@@ -65,29 +65,71 @@ async function startCamera(facingMode) {
     }
     updateLiveViewfinder();
 }
+let manualRotation = 0;
+let activeRotation = 0;
+
+function getDeviceOrientationRotation() {
+    if (screen.orientation && typeof screen.orientation.angle === 'number') {
+        const angle = ((screen.orientation.angle % 360) + 360) % 360;
+        return angle;
+    }
+    if (window.matchMedia && window.matchMedia('(orientation: landscape)').matches) {
+        return 90;
+    }
+    return 0;
+}
+
+function getEffectiveRotation() {
+    return (manualRotation + getDeviceOrientationRotation()) % 360;
+}
 
 function applyBoothRotation() {
-    const stage = document.getElementById('boothStage'); // container holding #webcam & #liveOverlayPreview
-    if (!stage) return;
+    if (!boothStage || !cameraBooth) return;
 
-    // Swap width/height on 90/270 deg so a landscape frame fits a portrait screen cleanly
-    const isSideways = boothRotation % 180 !== 0;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
+    activeRotation = getEffectiveRotation();
+
+    const rect = cameraBooth.getBoundingClientRect();
+    const vw = rect.width || window.innerWidth;
+    const vh = rect.height || window.innerHeight;
+    const isSideways = activeRotation % 180 !== 0;
 
     if (isSideways) {
-        const scale = Math.min(vw / vh, vh / vw);
-        stage.style.transform = `rotate(${boothRotation}deg) scale(${scale})`;
+        boothStage.style.width = `${vh}px`;
+        boothStage.style.height = `${vw}px`;
+        const fitScale = Math.min(vw / vh, vh / vw);
+        boothStage.style.transform = `translate(-50%, -50%) rotate(${activeRotation}deg) scale(${fitScale})`;
     } else {
-        stage.style.transform = `rotate(${boothRotation}deg)`;
+        boothStage.style.width = `${vw}px`;
+        boothStage.style.height = `${vh}px`;
+        boothStage.style.transform = `translate(-50%, -50%) rotate(${activeRotation}deg) scale(1)`;
     }
-    stage.style.transformOrigin = 'center center';
+
+    updateLiveViewfinder();
+}
+
+function syncOrientation() {
+    requestAnimationFrame(() => {
+        applyBoothRotation();
+        setTimeout(applyBoothRotation, 150);
+    });
+}
+
+if (rotateBtn) {
+    rotateBtn.addEventListener('click', () => {
+        manualRotation = (manualRotation + 90) % 360;
+        applyBoothRotation();
+    });
+}
+
+window.addEventListener('resize', syncOrientation);
+window.addEventListener('orientationchange', syncOrientation);
+if (screen.orientation && screen.orientation.addEventListener) {
+    screen.orientation.addEventListener('change', syncOrientation);
 }
 
 function updateLiveViewfinder() {
     const config = frameConfigs[currentOverlay];
 
-    // Reset to full viewfinder when no frame is selected
     if (!config) {
         video.style.position = 'absolute';
         video.style.left = '0%';
@@ -100,7 +142,6 @@ function updateLiveViewfinder() {
         return;
     }
 
-    // Size and position <video> directly to the frame cutout window
     video.style.position = 'absolute';
     video.style.left = `${(config.x * 100).toFixed(2)}%`;
     video.style.top = `${(config.y * 100).toFixed(2)}%`;
@@ -133,52 +174,44 @@ function runTimerSequence(seconds) {
     }, 1000);
 }
 
-function preview() {
+async function preview() {
     if (!video.srcObject) return;
+
+    activeRotation = getEffectiveRotation();
+    const isSideways = activeRotation % 180 !== 0;
 
     const videoWidth = video.videoWidth || 1280;
     const videoHeight = video.videoHeight || 720;
-    const displayRect = video.getBoundingClientRect();
-    
-    // Fallback to window dimensions if bounding rect is 0
-    const displayWidth = displayRect.width || window.innerWidth;
-    const displayHeight = displayRect.height || window.innerHeight;
 
-    canvas.width = displayWidth * 2; 
-    canvas.height = displayHeight * 2;
+    const stageWidth = boothStage ? boothStage.offsetWidth : (video.getBoundingClientRect().width || window.innerWidth);
+    const stageHeight = boothStage ? boothStage.offsetHeight : (video.getBoundingClientRect().height || window.innerHeight);
+
+    canvas.width = (isSideways ? stageHeight : stageWidth) * 2;
+    canvas.height = (isSideways ? stageWidth : stageHeight) * 2;
 
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const config = frameConfigs[currentOverlay];
 
-    if (config) {
-        const winX = config.x * canvas.width;
-        const winY = config.y * canvas.height;
-        const winW = config.width * canvas.width;
-        const winH = config.height * canvas.height;
-
-        const angleRad = (boothRotation * Math.PI) / 180;
+    function drawOrientedVideo(dx, dy, dw, dh) {
         ctx.save();
-        ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(angleRad);
-        ctx.translate(-canvas.width / 2, -canvas.height / 2);
         ctx.beginPath();
-        ctx.rect(winX, winY, winW, winH);
+        ctx.rect(dx, dy, dw, dh);
         ctx.clip();
-    // Mirror camera for selfie mode
+
+        ctx.translate(dx + dw / 2, dy + dh / 2);
         if (currentFacingMode === 'user') {
-            ctx.translate(winX + winW, winY);
             ctx.scale(-1, 1);
-        } else {
-            ctx.translate(winX, winY);
         }
 
+        const drawW = dw;
+        const drawH = dh;
+
         const videoRatio = videoWidth / videoHeight;
-        const targetRatio = winW / winH; 
+        const targetRatio = drawW / drawH;
 
         let sWidth, sHeight, sX, sY;
-
         if (videoRatio > targetRatio) {
             sHeight = videoHeight;
             sWidth = videoHeight * targetRatio;
@@ -191,44 +224,26 @@ function preview() {
             sY = (videoHeight - sHeight) / 2;
         }
 
-        ctx.drawImage(video, sX, sY, sWidth, sHeight, 0, 0, winW, winH);
+        ctx.drawImage(video, sX, sY, sWidth, sHeight, -drawW / 2, -drawH / 2, drawW, drawH);
         ctx.restore();
+    }
 
-        if (currentOverlay !== 'none' && loadedOverlayImages[currentOverlay]) {
+    if (config) {
+        const winX = config.x * canvas.width;
+        const winY = config.y * canvas.height;
+        const winW = config.width * canvas.width;
+        const winH = config.height * canvas.height;
+
+        drawOrientedVideo(winX, winY, winW, winH);
+
+        if (currentOverlay && currentOverlay !== 'none' && loadedOverlayImages[currentOverlay]) {
             const overlayImg = loadedOverlayImages[currentOverlay];
             if (overlayImg && overlayImg.complete && overlayImg.naturalWidth !== 0) {
                 ctx.drawImage(overlayImg, 0, 0, canvas.width, canvas.height);
             }
         }
-
     } else {
-        ctx.save();
-        if (currentFacingMode === 'user') {
-            ctx.translate(canvas.width, 0);
-            ctx.scale(-1, 1);
-        }
-
-        const videoRatio = videoWidth / videoHeight;
-        const displayRatio = canvas.width / canvas.height; 
-
-        let sWidth, sHeight, sX, sY;
-
-        if (videoRatio > displayRatio) {
-            sHeight = videoHeight;
-            sWidth = videoHeight * displayRatio;
-            sX = (videoWidth - sWidth) / 2;
-            sY = 0;
-        } else {
-            sWidth = videoWidth;
-            sHeight = videoWidth / displayRatio;
-            sX = 0;
-            sY = (videoHeight - sHeight) / 2;
-        }
-
-        ctx.drawImage(video, sX, sY, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
-        ctx.restore();
-        console.log('currentOverlay:', JSON.stringify(currentOverlay));
-        console.log('matched config:', frameConfigs[currentOverlay]);
+        drawOrientedVideo(0, 0, canvas.width, canvas.height);
     }
 
     const dataUrl = canvas.toDataURL('image/jpeg', 0.90);
