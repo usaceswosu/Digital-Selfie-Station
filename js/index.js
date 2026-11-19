@@ -88,40 +88,87 @@ function preview() {
     canvas.height = displayHeight * 2;
 
     const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    const config = frameConfigs[currentOverlay];
+
+    if (config) {
+        const winX = config.x * canvas.width;
+        const winY = config.y * canvas.height;
+        const winW = config.width * canvas.width;
+        const winH = config.height * canvas.height;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(winX, winY, winW, winH);
+        ctx.clip();
     // Mirror camera for selfie mode
-    ctx.save();
-    if (currentFacingMode === 'user') {
-        ctx.translate(canvas.width, 0);
-        ctx.scale(-1, 1);
-    }
+        if (currentFacingMode === 'user') {
+            ctx.translate(winX + winW, winY);
+            ctx.scale(-1, 1);
+        } else {
+            ctx.translate(winX, winY);
+        }
 
-    const videoRatio = videoWidth / videoHeight;
-    const displayRatio = canvas.width / canvas.height; 
+        const videoRatio = videoWidth / videoHeight;
+        const targetRatio = winW / winH; 
 
-    let sWidth, sHeight, sX, sY;
+        let sWidth, sHeight, sX, sY;
 
-    if (videoRatio > displayRatio) {
-        sHeight = videoHeight;
-        sWidth = videoHeight * displayRatio;
-        sX = (videoWidth - sWidth) / 2;
-        sY = 0;
+        if (videoRatio > targetRatio) {
+            sHeight = videoHeight;
+            sWidth = videoHeight * targetRatio;
+            sX = (videoWidth - sWidth) / 2;
+            sY = 0;
+        } else {
+            sWidth = videoWidth;
+            sHeight = videoWidth / targetRatio;
+            sX = 0;
+            sY = (videoHeight - sHeight) / 2;
+        }
+
+        ctx.drawImage(video, sX, sY, sWidth, sHeight, 0, 0, winW, winH);
+        ctx.restore();
+
+        if (loadedOverlayImages[currentOverlay]) {
+            const overlayImg = loadedOverlayImages[currentOverlay];
+            if (overlayImg.complete && overlayImg.naturalWidth !== 0) {
+                ctx.drawImage(overlayImg, 0, 0, canvas.width, canvas.height);
+            }
+        }
+
     } else {
-        sWidth = videoWidth;
-        sHeight = videoWidth / displayRatio;
-        sX = 0;
-        sY = (videoHeight - sHeight) / 2;
+        ctx.save();
+        if (currentFacingMode === 'user') {
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+        }
+
+        const videoRatio = videoWidth / videoHeight;
+        const displayRatio = canvas.width / canvas.height; 
+
+        let sWidth, sHeight, sX, sY;
+
+        if (videoRatio > displayRatio) {
+            sHeight = videoHeight;
+            sWidth = videoHeight * displayRatio;
+            sX = (videoWidth - sWidth) / 2;
+            sY = 0;
+        } else {
+            sWidth = videoWidth;
+            sHeight = videoWidth / displayRatio;
+            sX = 0;
+            sY = (videoHeight - sHeight) / 2;
+        }
+
+        ctx.drawImage(video, sX, sY, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
+        ctx.restore();
     }
-
-    ctx.drawImage(video, sX, sY, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
-    ctx.restore();
-
 
     const dataUrl = canvas.toDataURL('image/jpeg', 0.90);
     photoPreviewImg.src = dataUrl;
     photoReviewModal.style.display = 'flex';
 }
-
 // Event listeners
 timerBtn.addEventListener('click', () => runTimerSequence(5));
 flipBtn.addEventListener('click', () => {
