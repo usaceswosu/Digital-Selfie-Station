@@ -28,6 +28,7 @@ const frameConfigs = {
 };
 
 let capturedBlob = null;
+let boothRotation = 0;
 
 Object.keys(frameConfigs).forEach(path => {
     const img = new Image();
@@ -63,6 +64,24 @@ async function startCamera(facingMode) {
         alert("Unable to access camera. Please check browser permissions.");
     }
     updateLiveViewfinder();
+}
+
+function applyBoothRotation() {
+    const stage = document.getElementById('boothStage'); // container holding #webcam & #liveOverlayPreview
+    if (!stage) return;
+
+    // Swap width/height on 90/270 deg so a landscape frame fits a portrait screen cleanly
+    const isSideways = boothRotation % 180 !== 0;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    if (isSideways) {
+        const scale = Math.min(vw / vh, vh / vw);
+        stage.style.transform = `rotate(${boothRotation}deg) scale(${scale})`;
+    } else {
+        stage.style.transform = `rotate(${boothRotation}deg)`;
+    }
+    stage.style.transformOrigin = 'center center';
 }
 
 function updateLiveViewfinder() {
@@ -139,7 +158,11 @@ function preview() {
         const winW = config.width * canvas.width;
         const winH = config.height * canvas.height;
 
+        const angleRad = (boothRotation * Math.PI) / 180;
         ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(angleRad);
+        ctx.translate(-canvas.width / 2, -canvas.height / 2);
         ctx.beginPath();
         ctx.rect(winX, winY, winW, winH);
         ctx.clip();
