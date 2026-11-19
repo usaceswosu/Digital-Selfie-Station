@@ -16,16 +16,24 @@ const overlayModal = document.getElementById('overlayModal');
 const frameChoiceBtns = document.querySelectorAll('.frame-choice');
 const closeOverlayModal = document.getElementById('closeOverlayModal');
 const openOverlayBtn = document.getElementById('openOverlayBtn');
+const loadedOverlayImages = {};
+const liveOverlayPreview = document.getElementById('liveOverlayPreview');
 
 const frameConfigs = {
-    'assets/Canton Lake.png': { x: 100, y: 200, width: 1720, height: 950 },
-    'assets/Mount Corpsmore.png': { x: 120, y: 140, width: 1680, height: 900 },
-    'assets/Lock 18 RFH.png': { x: 100, y: 120, width: 1750, height: 980 },
-    'assets/Keystone Lake.png': { x: 130, y: 220, width: 1660, height: 900 },
-    'assets/Fort Supply Lake.png': { x: 110, y: 210, width: 1700, height: 920 }
+    'assets/frame1.png': { x: 0.5, y: 0.14, width: 0.69, height: 0.4 }, // Canton Lake
+    'assets/frame2.png': { x: 0.155, y: 0.14, width: 0.69, height: 0.65 }, // Fort Supply Lake
+    'assets/frame3.png': { x: 0.155, y: 0.14, width: 0.69, height: 0.65 }, // Keystone Lake
+    'assets/frame4.png': { x: 0.155, y: 0.14, width: 0.69, height: 0.65 }, // RFH Visitor Center
+    'assets/frame5.png': { x: 0.155, y: 0.14, width: 0.69, height: 0.65 }  // Mount Corpsmore
 };
 
 let capturedBlob = null;
+
+Object.keys(frameConfigs).forEach(path => {
+    const img = new Image();
+    img.src = path;
+    loadedOverlayImages[path] = img;
+});
 
 async function startCamera(facingMode) {
     if (activeStream) {
@@ -135,9 +143,9 @@ function preview() {
         ctx.drawImage(video, sX, sY, sWidth, sHeight, 0, 0, winW, winH);
         ctx.restore();
 
-        if (loadedOverlayImages[currentOverlay]) {
+        if (currentOverlay !== 'none' && loadedOverlayImages[currentOverlay]) {
             const overlayImg = loadedOverlayImages[currentOverlay];
-            if (overlayImg.complete && overlayImg.naturalWidth !== 0) {
+            if (overlayImg && overlayImg.complete && overlayImg.naturalWidth !== 0) {
                 ctx.drawImage(overlayImg, 0, 0, canvas.width, canvas.height);
             }
         }
@@ -168,6 +176,8 @@ function preview() {
 
         ctx.drawImage(video, sX, sY, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
         ctx.restore();
+        console.log('currentOverlay:', JSON.stringify(currentOverlay));
+        console.log('matched config:', frameConfigs[currentOverlay]);
     }
 
     const dataUrl = canvas.toDataURL('image/jpeg', 0.90);
@@ -203,6 +213,16 @@ frameChoiceBtns.forEach(btn => {
         frameChoiceBtns.forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
         currentOverlay = btn.getAttribute('data-overlay');
+
+        if (liveOverlayPreview) {
+            if (currentOverlay && currentOverlay !== 'none') {
+                liveOverlayPreview.src = currentOverlay;
+                liveOverlayPreview.style.display = 'block';
+            } else {
+                liveOverlayPreview.removeAttribute('src');
+                liveOverlayPreview.style.display = 'none';
+            }
+        }
     });
 });
 
@@ -215,6 +235,10 @@ if (openOverlayBtn) {
         overlayModal.style.display = 'flex';
     });
 }
+
+closeOverlayModal.addEventListener('click', () => {
+    overlayModal.style.display = 'none';
+});
  // overlay selection, fix weird mobile bugs
 
 // other todos: make consent form pretty, supabase backend for storing images. I'd like to get finished with the easier stuff early so I can have some fun with the overlays, maybe with AR/filters etc. 
