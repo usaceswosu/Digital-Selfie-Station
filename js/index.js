@@ -209,7 +209,7 @@ async function preview() {
 
     const config = frameConfigs[currentOverlay];
 
-    function drawOrientedVideo(dx, dy, dw, dh) {
+    async function drawOrientedVideo(dx, dy, dw, dh) {
         const pad = 2;
         const cx = dx - pad;
         const cy = dy - pad;
@@ -222,40 +222,27 @@ async function preview() {
         ctx.clip();
 
         ctx.translate(cx + cw / 2, cy + ch / 2);
-        if (activeRotation !== 0) {
-            ctx.rotate((-activeRotation * Math.PI) / 180);
-        }
         if (currentFacingMode === 'user') {
             ctx.scale(-1, 1);
         }
 
-        const drawW = isSideways ? ch : cw;
-        const drawH = isSideways ? cw : ch;
+        const videoRatio = videoWidth / videoHeight;
+        const targetRatio = cw / ch;
 
-        const srcW = isSideways ? videoHeight : videoWidth;
-        const srcH = isSideways ? videoWidth : videoHeight;
-        const videoRatio = srcW / srcH;
-        const targetRatio = drawW / drawH;
-
-        let cropW, cropH, cropX, cropY;
+        let sWidth, sHeight, sX, sY;
         if (videoRatio > targetRatio) {
-            cropH = srcH;
-            cropW = srcH * targetRatio;
-            cropX = (srcW - cropW) / 2;
-            cropY = 0;
+            sHeight = videoHeight;
+            sWidth = videoHeight * targetRatio;
+            sX = (videoWidth - sWidth) / 2;
+            sY = 0;
         } else {
-            cropW = srcW;
-            cropH = srcW / targetRatio;
-            cropX = 0;
-            cropY = (srcH - cropH) / 2;
+            sWidth = videoWidth;
+            sHeight = videoWidth / targetRatio;
+            sX = 0;
+            sY = (videoHeight - sHeight) / 2;
         }
 
-        const sX = isSideways ? cropY : cropX;
-        const sY = isSideways ? cropX : cropY;
-        const sWidth = isSideways ? cropH : cropW;
-        const sHeight = isSideways ? cropW : cropH;
-
-        ctx.drawImage(video, sX, sY, sWidth, sHeight, -drawW / 2, -drawH / 2, drawW, drawH);
+        ctx.drawImage(video, sX, sY, sWidth, sHeight, -cw / 2, -ch / 2, cw, ch);
         ctx.restore();
     }
 
