@@ -323,7 +323,7 @@ async function preview() {
     photoReviewModal.style.display = 'flex';
 
     capturedBlob = await new Promise(resolve => {
-        canvas.toBlob(blob => resolve(blob), 'image/jpeg', 0.90);
+        canvas.toBlob(blob => resolve(blob), 'image/png', 0.90);
     });
 }
 
