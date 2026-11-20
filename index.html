@@ -122,13 +122,16 @@
             const consentDialog = document.querySelector('#consentDialog');
             const consentScreen = document.querySelector('#consentScreen');
             const cameraBooth = document.querySelector('#cameraBooth');
+            const overlayModal = document.querySelector('#overlayModal');
             const submitButton = document.querySelector('#submitPhotoBtn');
             const retakeButton = document.querySelector('#retakeBtn');
             const uploadStatus = document.querySelector('#uploadStatus');
-            let consentGranted = false;
-            let uploading = false;
-            let uploadedPath = null;
 
+            window.consentGranted = false;
+
+            if (overlayModal) {
+                overlayModal.style.display = 'none';
+            }
             consentDialog.showModal();
 
             document.querySelector('#openConsent').addEventListener('click', () => {
@@ -136,13 +139,18 @@
             });
 
             function launchCamera(allowPhotoUse) {
-                consentGranted = allowPhotoUse;
+                window.consentGranted = Boolean(allowPhotoUse);
                 consentDialog.close();
                 consentScreen.style.display = 'none';
                 cameraBooth.style.display = 'block';
-                syncOrientation()
+                if (typeof syncOrientation === 'function') {
+                    syncOrientation();
+                }
                 if (typeof startCamera === 'function') {
-                    startCamera(typeof currentFacingMode === 'undefined' ? 'user' : currentFacingMode);
+                    startCamera(typeof currentFacingMode === 'undefined' ? 'environment' : currentFacingMode);
+                }
+                if (overlayModal) {
+                    overlayModal.style.display = 'flex';
                 }
             }
 
@@ -157,12 +165,14 @@
             });
 
             retakeButton.addEventListener('click', () => {
-                uploadedPath = null;
-                uploadStatus.textContent = '';
-                submitButton.disabled = false;
-                submitButton.textContent = 'Submit';
+                if (uploadStatus) {
+                    uploadStatus.textContent = '';
+                }
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Submit';
+                }
             });
-
         });
     </script>
 </body>

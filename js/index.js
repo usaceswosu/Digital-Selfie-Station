@@ -21,6 +21,8 @@ const liveOverlayPreview = document.getElementById('liveOverlayPreview');
 const rotateBtn = document.getElementById('rotateBtn');
 const boothStage = document.getElementById('boothStage');
 const videoWindow = document.getElementById('videoWindow');
+const cameraBooth = document.getElementById('cameraBooth');
+const uploadStatus = document.getElementById('uploadStatus');
 
 const frameConfigs = {
     'assets/frame1.png': { x: 0.09, y: 0.105, width: 0.85, height: 0.895 },
@@ -31,10 +33,12 @@ const frameConfigs = {
 };
 
 let capturedBlob = null;
-let boothRotation = 0;
-let consentGranted = true;
 let isUploading = false;
 let uploadedSelfiePath = null;
+
+if (typeof window.consentGranted !== 'boolean') {
+    window.consentGranted = false;
+}
 
 Object.keys(frameConfigs).forEach(path => {
     const img = new Image();
@@ -64,13 +68,13 @@ async function startCamera(facingMode) {
         } else {
             video.style.transform = 'none';
         }
-
     } catch (err) {
         console.error("Camera access error:", err);
         alert("Unable to access camera. Please check browser permissions.");
     }
     updateLiveViewfinder();
 }
+
 let manualRotation = 0;
 let activeRotation = 0;
 
@@ -206,44 +210,44 @@ async function preview() {
     const config = frameConfigs[currentOverlay];
 
     function drawOrientedVideo(dx, dy, dw, dh) {
-            const pad = 2;
-            const cx = dx - pad;
-            const cy = dy - pad;
-            const cw = dw + pad * 2;
-            const ch = dh + pad * 2;
+        const pad = 2;
+        const cx = dx - pad;
+        const cy = dy - pad;
+        const cw = dw + pad * 2;
+        const ch = dh + pad * 2;
 
-            ctx.save();
-            ctx.beginPath();
-            ctx.rect(cx, cy, cw, ch);
-            ctx.clip();
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(cx, cy, cw, ch);
+        ctx.clip();
 
-            ctx.translate(cx + cw / 2, cy + ch / 2);
-            if (currentFacingMode === 'user') {
-                ctx.scale(-1, 1);
-            }
-
-            const drawW = cw;
-            const drawH = ch;
-
-            const videoRatio = videoWidth / videoHeight;
-            const targetRatio = drawW / drawH;
-
-            let sWidth, sHeight, sX, sY;
-            if (videoRatio > targetRatio) {
-                sHeight = videoHeight;
-                sWidth = videoHeight * targetRatio;
-                sX = (videoWidth - sWidth) / 2;
-                sY = 0;
-            } else {
-                sWidth = videoWidth;
-                sHeight = videoWidth / targetRatio;
-                sX = 0;
-                sY = (videoHeight - sHeight) / 2;
-            }
-
-            ctx.drawImage(video, sX, sY, sWidth, sHeight, -drawW / 2, -drawH / 2, drawW, drawH);
-            ctx.restore();
+        ctx.translate(cx + cw / 2, cy + ch / 2);
+        if (currentFacingMode === 'user') {
+            ctx.scale(-1, 1);
         }
+
+        const drawW = cw;
+        const drawH = ch;
+
+        const videoRatio = videoWidth / videoHeight;
+        const targetRatio = drawW / drawH;
+
+        let sWidth, sHeight, sX, sY;
+        if (videoRatio > targetRatio) {
+            sHeight = videoHeight;
+            sWidth = videoHeight * targetRatio;
+            sX = (videoWidth - sWidth) / 2;
+            sY = 0;
+        } else {
+            sWidth = videoWidth;
+            sHeight = videoWidth / targetRatio;
+            sX = 0;
+            sY = (videoHeight - sHeight) / 2;
+        }
+
+        ctx.drawImage(video, sX, sY, sWidth, sHeight, -drawW / 2, -drawH / 2, drawW, drawH);
+        ctx.restore();
+    }
 
     if (config) {
         const bleed = 3;
@@ -274,6 +278,9 @@ async function preview() {
 
     const dataUrl = canvas.toDataURL('image/jpeg', 0.90);
     photoPreviewImg.src = dataUrl;
+    if (uploadStatus) {
+        uploadStatus.textContent = '';
+    }
     photoReviewModal.style.display = 'flex';
 
     capturedBlob = await new Promise(resolve => {
@@ -304,17 +311,6 @@ function downloadCapturedPhoto(canvasOrBlob) {
     }
 }
 
-async function launchPhotoBooth() {
-    consentDialog.close();
-    consentScreen.style.display = 'none';
-    cameraBooth.style.display = 'block';
-    syncOrientation();
-    await startCamera(currentFacingMode);
-
-    overlayModal.style.display = 'flex';
-}
-
-// Event listeners
 timerBtn.addEventListener('click', () => runTimerSequence(5));
 flipBtn.addEventListener('click', () => {
     currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
@@ -327,6 +323,9 @@ retakeBtn.addEventListener('click', () => {
     photoPreviewImg.src = '';
     capturedBlob = null;
     uploadedSelfiePath = null;
+    if (uploadStatus) {
+        uploadStatus.textContent = '';
+    }
     if (submitPhotoBtn) {
         submitPhotoBtn.disabled = false;
         submitPhotoBtn.textContent = 'Submit';
@@ -337,11 +336,11 @@ if (submitPhotoBtn) {
     submitPhotoBtn.addEventListener('click', async () => {
         if (isUploading || uploadedSelfiePath) return;
 
-        const snapCanvas = document.querySelector('#snapshotCanvas');
-        downloadCapturedPhoto(capturedBlob || snapCanvas);
+        const consented = Boolean(window.consentGranted);
+        downloadCapturedPhoto(capturedBlob || canvas);
 
-        if (!consentGranted) {
-            if (typeof uploadStatus !== 'undefined' && uploadStatus) {
+        if (!consented) {
+            if (uploadStatus) {
                 uploadStatus.textContent = 'You chose to keep your photo private. No photo was uploaded.';
             }
             return;
@@ -351,7 +350,7 @@ if (submitPhotoBtn) {
         submitPhotoBtn.disabled = true;
         if (retakeBtn) retakeBtn.disabled = true;
         submitPhotoBtn.textContent = 'Uploading…';
-        if (typeof uploadStatus !== 'undefined' && uploadStatus) {
+        if (uploadStatus) {
             uploadStatus.textContent = 'Uploading your photo…';
         }
 
@@ -360,16 +359,16 @@ if (submitPhotoBtn) {
                 throw new Error('window.uploadSelfieToSupabase is not a function');
             }
             uploadedSelfiePath = await window.uploadSelfieToSupabase({
-                canvas: snapCanvas,
-                consentGranted
+                canvas,
+                consentGranted: consented
             });
-            if (typeof uploadStatus !== 'undefined' && uploadStatus) {
+            if (uploadStatus) {
                 uploadStatus.textContent = 'Your photo was uploaded successfully.';
             }
             submitPhotoBtn.textContent = 'Uploaded';
         } catch (error) {
             console.error('Photo upload failed:', error);
-            if (typeof uploadStatus !== 'undefined' && uploadStatus) {
+            if (uploadStatus) {
                 uploadStatus.textContent = `Upload failed. ${error.message || 'Please try again.'}`;
             }
             submitPhotoBtn.disabled = false;
@@ -410,6 +409,3 @@ if (openOverlayBtn) {
 }
 video.addEventListener('loadedmetadata', updateLiveViewfinder);
 window.addEventListener('resize', updateLiveViewfinder);
-// overlay selection, fix weird mobile bugs
-
-// other todos: make consent form pretty, supabase backend for storing images. I'd like to get finished with the easier stuff early so I can have some fun with the overlays, maybe with AR/filters etc. 
