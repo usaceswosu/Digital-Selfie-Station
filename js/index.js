@@ -232,26 +232,32 @@ async function preview() {
         const drawW = isSideways ? ch : cw;
         const drawH = isSideways ? cw : ch;
 
-        const videoRatio = videoWidth / videoHeight;
+        const srcW = isSideways ? videoHeight : videoWidth;
+        const srcH = isSideways ? videoWidth : videoHeight;
+        const videoRatio = srcW / srcH;
         const targetRatio = drawW / drawH;
 
-        let sWidth, sHeight, sX, sY;
+        let cropW, cropH, cropX, cropY;
         if (videoRatio > targetRatio) {
-            sHeight = videoHeight;
-            sWidth = videoHeight * targetRatio;
-            sX = (videoWidth - sWidth) / 2;
-            sY = 0;
+            cropH = srcH;
+            cropW = srcH * targetRatio;
+            cropX = (srcW - cropW) / 2;
+            cropY = 0;
         } else {
-            sWidth = videoWidth;
-            sHeight = videoWidth / targetRatio;
-            sX = 0;
-            sY = (videoHeight - sHeight) / 2;
+            cropW = srcW;
+            cropH = srcW / targetRatio;
+            cropX = 0;
+            cropY = (srcH - cropH) / 2;
         }
+
+        const sX = isSideways ? cropY : cropX;
+        const sY = isSideways ? cropX : cropY;
+        const sWidth = isSideways ? cropH : cropW;
+        const sHeight = isSideways ? cropW : cropH;
 
         ctx.drawImage(video, sX, sY, sWidth, sHeight, -drawW / 2, -drawH / 2, drawW, drawH);
         ctx.restore();
     }
-
 
     if (config) {
         const bleed = 3;
