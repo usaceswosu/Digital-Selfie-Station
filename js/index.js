@@ -32,6 +32,9 @@ const frameConfigs = {
 
 let capturedBlob = null;
 let boothRotation = 0;
+let consentGranted = true;
+let isUploading = false;
+let uploadedSelfiePath = null;
 
 Object.keys(frameConfigs).forEach(path => {
     const img = new Image();
@@ -272,6 +275,33 @@ async function preview() {
     const dataUrl = canvas.toDataURL('image/jpeg', 0.90);
     photoPreviewImg.src = dataUrl;
     photoReviewModal.style.display = 'flex';
+
+    capturedBlob = await new Promise(resolve => {
+        canvas.toBlob(blob => resolve(blob), 'image/jpeg', 0.90);
+    });
+}
+
+function downloadCapturedPhoto(canvasOrBlob) {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `photobooth-${timestamp}.jpg`;
+
+    const triggerDownload = (blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+
+    if (canvasOrBlob instanceof Blob) {
+        triggerDownload(canvasOrBlob);
+    } else if (canvasOrBlob instanceof HTMLCanvasElement && canvasOrBlob.width && canvasOrBlob.height) {
+        canvasOrBlob.toBlob(triggerDownload, 'image/jpeg', 0.9);
+    }
 }
 
 async function launchPhotoBooth() {
@@ -295,7 +325,61 @@ snapBtn.addEventListener('click', () => preview());
 retakeBtn.addEventListener('click', () => {
     photoReviewModal.style.display = 'none';
     photoPreviewImg.src = '';
+    capturedBlob = null;
+    uploadedSelfiePath = null;
+    if (submitPhotoBtn) {
+        submitPhotoBtn.disabled = false;
+        submitPhotoBtn.textContent = 'Submit';
+    }
 });
+
+if (submitPhotoBtn) {
+    submitPhotoBtn.addEventListener('click', async () => {
+        if (isUploading || uploadedSelfiePath) return;
+
+        const snapCanvas = document.querySelector('#snapshotCanvas');
+        downloadCapturedPhoto(capturedBlob || snapCanvas);
+
+        if (!consentGranted) {
+            if (typeof uploadStatus !== 'undefined' && uploadStatus) {
+                uploadStatus.textContent = 'You chose to keep your photo private. No photo was uploaded.';
+            }
+            return;
+        }
+
+        isUploading = true;
+        submitPhotoBtn.disabled = true;
+        if (retakeBtn) retakeBtn.disabled = true;
+        submitPhotoBtn.textContent = 'Uploading…';
+        if (typeof uploadStatus !== 'undefined' && uploadStatus) {
+            uploadStatus.textContent = 'Uploading your photo…';
+        }
+
+        try {
+            if (typeof window.uploadSelfieToSupabase !== 'function') {
+                throw new Error('window.uploadSelfieToSupabase is not a function');
+            }
+            uploadedSelfiePath = await window.uploadSelfieToSupabase({
+                canvas: snapCanvas,
+                consentGranted
+            });
+            if (typeof uploadStatus !== 'undefined' && uploadStatus) {
+                uploadStatus.textContent = 'Your photo was uploaded successfully.';
+            }
+            submitPhotoBtn.textContent = 'Uploaded';
+        } catch (error) {
+            console.error('Photo upload failed:', error);
+            if (typeof uploadStatus !== 'undefined' && uploadStatus) {
+                uploadStatus.textContent = `Upload failed. ${error.message || 'Please try again.'}`;
+            }
+            submitPhotoBtn.disabled = false;
+            submitPhotoBtn.textContent = 'Try again';
+        } finally {
+            isUploading = false;
+            if (retakeBtn) retakeBtn.disabled = false;
+        }
+    });
+}
 
 frameChoiceBtns.forEach(btn => {
     btn.addEventListener('click', () => {

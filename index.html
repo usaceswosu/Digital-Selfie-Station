@@ -163,38 +163,6 @@
                 submitButton.textContent = 'Submit';
             });
 
-            submitButton.addEventListener('click', async () => {
-                if (uploading || uploadedPath) return;
-
-                if (!consentGranted) {
-                    uploadStatus.textContent = 'You chose to keep your photo private. No photo was uploaded.';
-                    return;
-                }
-
-                uploading = true;
-                submitButton.disabled = true;
-                retakeButton.disabled = true;
-                submitButton.textContent = 'Uploading…';
-                uploadStatus.textContent = 'Uploading your photo…';
-
-                try {
-                    // This calls the upload function in js/supabase-upload.js.
-                    uploadedPath = await window.uploadSelfieToSupabase({
-                        canvas: document.querySelector('#snapshotCanvas'),
-                        consentGranted
-                    });
-                    uploadStatus.textContent = 'Your photo was uploaded successfully.';
-                    submitButton.textContent = 'Uploaded';
-                } catch (error) {
-                    console.error('Photo upload failed:', error);
-                    uploadStatus.textContent = `Upload failed. ${error.message || 'Please try again.'}`;
-                    submitButton.disabled = false;
-                    submitButton.textContent = 'Try again';
-                } finally {
-                    uploading = false;
-                    retakeButton.disabled = false;
-                }
-            });
         });
     </script>
 </body>
