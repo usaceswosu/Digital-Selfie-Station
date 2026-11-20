@@ -158,8 +158,8 @@ function updateLiveViewfinder() {
     video.style.position = 'absolute';
     video.style.left = '50%';
     video.style.top = '50%';
-    video.style.width = isSideways ? '125%' : '100%';
-    video.style.height = isSideways ? '125%' : '100%';
+    video.style.width = isSideways ? '150%' : '100%';
+    video.style.height = isSideways ? '150%' : '100%';
     video.style.objectFit = 'cover';
     video.style.transformOrigin = 'center center';
     video.style.transform = `translate(-50%, -50%) ${counterRot} ${mirror}`.trim();
