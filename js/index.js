@@ -284,7 +284,7 @@ async function preview() {
         outCtx.clearRect(0, 0, canvas.width, canvas.height);
         outCtx.save();
         outCtx.translate(canvas.width / 2, canvas.height / 2);
-        outCtx.rotate((activeRotation * Math.PI) / 180);
+        outCtx.rotate((-activeRotation * Math.PI) / 180);
         outCtx.drawImage(workCanvas, -workCanvas.width / 2, -workCanvas.height / 2);
         outCtx.restore();
     }
