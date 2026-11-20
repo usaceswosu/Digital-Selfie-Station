@@ -201,15 +201,16 @@ async function preview() {
     const stageWidth = boothStage ? boothStage.offsetWidth : (video.getBoundingClientRect().width || window.innerWidth);
     const stageHeight = boothStage ? boothStage.offsetHeight : (video.getBoundingClientRect().height || window.innerHeight);
 
-    canvas.width = (isSideways ? stageHeight : stageWidth) * 2;
-    canvas.height = (isSideways ? stageWidth : stageHeight) * 2;
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = (isSideways ? stageHeight : stageWidth) * 2;
+    tempCanvas.height = (isSideways ? stageWidth : stageHeight) * 2;
 
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const ctx = tempCanvas.getContext('2d');
+    ctx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
 
     const config = frameConfigs[currentOverlay];
 
-    async function drawOrientedVideo(dx, dy, dw, dh) {
+    function drawOrientedVideo(dx, dy, dw, dh) {
         const pad = 2;
         const cx = dx - pad;
         const cy = dy - pad;
@@ -248,34 +249,41 @@ async function preview() {
 
     if (config) {
         const bleed = 3;
-        const winX = config.x * canvas.width;
-        const winY = Math.max(0, config.y * canvas.height - bleed);
-        const winW = config.width * canvas.width;
-        const winH = config.height * canvas.height + bleed;
+        const winX = config.x * tempCanvas.width;
+        const winY = Math.max(0, config.y * tempCanvas.height - bleed);
+        const winW = config.width * tempCanvas.width;
+        const winH = config.height * tempCanvas.height + bleed;
 
         drawOrientedVideo(winX, winY, winW, winH);
 
         if (currentOverlay && currentOverlay !== 'none' && loadedOverlayImages[currentOverlay]) {
             const overlayImg = loadedOverlayImages[currentOverlay];
             if (overlayImg && overlayImg.complete && overlayImg.naturalWidth !== 0) {
-                ctx.save();
-                ctx.translate(canvas.width / 2, canvas.height / 2);
-                if (activeRotation) {
-                    ctx.rotate((activeRotation * Math.PI) / 180);
-                }
-                const drawOverlayW = isSideways ? canvas.height : canvas.width;
-                const drawOverlayH = isSideways ? canvas.width : canvas.height;
-                ctx.drawImage(overlayImg, -drawOverlayW / 2, -drawOverlayH / 2, drawOverlayW, drawOverlayH);
-                ctx.restore();
+                ctx.drawImage(overlayImg, 0, 0, tempCanvas.width, tempCanvas.height);
             }
         }
     } else {
-        drawOrientedVideo(0, 0, canvas.width, canvas.height);
+        drawOrientedVideo(0, 0, tempCanvas.width, tempCanvas.height);
     }
+
+    const rad = ((activeRotation % 360) * Math.PI) / 180;
+    const cos = Math.abs(Math.cos(rad));
+    const sin = Math.abs(Math.sin(rad));
+
+    canvas.width = Math.round(tempCanvas.width * cos + tempCanvas.height * sin);
+    canvas.height = Math.round(tempCanvas.height * cos + tempCanvas.width * sin);
+
+    const outCtx = canvas.getContext('2d');
+    outCtx.clearRect(0, 0, canvas.width, canvas.height);
+    outCtx.save();
+    outCtx.translate(canvas.width / 2, canvas.height / 2);
+    outCtx.rotate(rad);
+    outCtx.drawImage(tempCanvas, -tempCanvas.width / 2, -tempCanvas.height / 2);
+    outCtx.restore();
 
     const dataUrl = canvas.toDataURL('image/jpeg', 0.90);
     photoPreviewImg.src = dataUrl;
-    if (uploadStatus) {
+    if (typeof uploadStatus !== 'undefined' && uploadStatus) {
         uploadStatus.textContent = '';
     }
     photoReviewModal.style.display = 'flex';
@@ -284,6 +292,7 @@ async function preview() {
         canvas.toBlob(blob => resolve(blob), 'image/jpeg', 0.90);
     });
 }
+
 
 function downloadCapturedPhoto(canvasOrBlob) {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
