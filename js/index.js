@@ -201,12 +201,15 @@ async function preview() {
     const stageWidth = boothStage ? boothStage.offsetWidth : (video.getBoundingClientRect().width || window.innerWidth);
     const stageHeight = boothStage ? boothStage.offsetHeight : (video.getBoundingClientRect().height || window.innerHeight);
 
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = (isSideways ? stageHeight : stageWidth) * 2;
-    tempCanvas.height = (isSideways ? stageWidth : stageHeight) * 2;
+    const baseW = (isSideways ? stageHeight : stageWidth) * 2;
+    const baseH = (isSideways ? stageWidth : stageHeight) * 2;
 
-    const ctx = tempCanvas.getContext('2d');
-    ctx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+    const workCanvas = isSideways ? document.createElement('canvas') : canvas;
+    workCanvas.width = baseW;
+    workCanvas.height = baseH;
+
+    const ctx = workCanvas.getContext('2d');
+    ctx.clearRect(0, 0, workCanvas.width, workCanvas.height);
 
     const config = frameConfigs[currentOverlay];
 
@@ -249,37 +252,42 @@ async function preview() {
 
     if (config) {
         const bleed = 3;
-        const winX = config.x * tempCanvas.width;
-        const winY = Math.max(0, config.y * tempCanvas.height - bleed);
-        const winW = config.width * tempCanvas.width;
-        const winH = config.height * tempCanvas.height + bleed;
+        const winX = config.x * workCanvas.width;
+        const winY = Math.max(0, config.y * workCanvas.height - bleed);
+        const winW = config.width * workCanvas.width;
+        const winH = config.height * workCanvas.height + bleed;
 
         drawOrientedVideo(winX, winY, winW, winH);
 
         if (currentOverlay && currentOverlay !== 'none' && loadedOverlayImages[currentOverlay]) {
             const overlayImg = loadedOverlayImages[currentOverlay];
             if (overlayImg && overlayImg.complete && overlayImg.naturalWidth !== 0) {
-                ctx.drawImage(overlayImg, 0, 0, tempCanvas.width, tempCanvas.height);
+                ctx.save();
+                ctx.translate(workCanvas.width / 2, workCanvas.height / 2);
+                if (activeRotation) {
+                    ctx.rotate((activeRotation * Math.PI) / 180);
+                }
+                const drawOverlayW = isSideways ? workCanvas.height : workCanvas.width;
+                const drawOverlayH = isSideways ? workCanvas.width : workCanvas.height;
+                ctx.drawImage(overlayImg, -drawOverlayW / 2, -drawOverlayH / 2, drawOverlayW, drawOverlayH);
+                ctx.restore();
             }
         }
     } else {
-        drawOrientedVideo(0, 0, tempCanvas.width, tempCanvas.height);
+        drawOrientedVideo(0, 0, workCanvas.width, workCanvas.height);
     }
 
-    const rad = ((activeRotation % 360) * Math.PI) / 180;
-    const cos = Math.abs(Math.cos(rad));
-    const sin = Math.abs(Math.sin(rad));
-
-    canvas.width = Math.round(tempCanvas.width * cos + tempCanvas.height * sin);
-    canvas.height = Math.round(tempCanvas.height * cos + tempCanvas.width * sin);
-
-    const outCtx = canvas.getContext('2d');
-    outCtx.clearRect(0, 0, canvas.width, canvas.height);
-    outCtx.save();
-    outCtx.translate(canvas.width / 2, canvas.height / 2);
-    outCtx.rotate(rad);
-    outCtx.drawImage(tempCanvas, -tempCanvas.width / 2, -tempCanvas.height / 2);
-    outCtx.restore();
+    if (isSideways) {
+        canvas.width = workCanvas.height;
+        canvas.height = workCanvas.width;
+        const outCtx = canvas.getContext('2d');
+        outCtx.clearRect(0, 0, canvas.width, canvas.height);
+        outCtx.save();
+        outCtx.translate(canvas.width / 2, canvas.height / 2);
+        outCtx.rotate((activeRotation * Math.PI) / 180);
+        outCtx.drawImage(workCanvas, -workCanvas.width / 2, -workCanvas.height / 2);
+        outCtx.restore();
+    }
 
     const dataUrl = canvas.toDataURL('image/jpeg', 0.90);
     photoPreviewImg.src = dataUrl;
