@@ -142,6 +142,9 @@ function updateLiveViewfinder() {
     const mirror = currentFacingMode === 'user' ? 'scaleX(-1)' : '';
     const counterRot = activeRotation !== 0 ? `rotate(${-activeRotation}deg)` : '';
 
+    let winW = boothStage ? boothStage.clientWidth : window.innerWidth;
+    let winH = boothStage ? boothStage.clientHeight : window.innerHeight;
+
     if (videoWindow) {
         if (!config) {
             videoWindow.style.left = '0%';
@@ -153,13 +156,36 @@ function updateLiveViewfinder() {
             videoWindow.style.top = `${(config.y * 100).toFixed(2)}%`;
             videoWindow.style.width = `${(config.width * 100).toFixed(2)}%`;
             videoWindow.style.height = `${(config.height * 100).toFixed(2)}%`;
+            winW = winW * config.width;
+            winH = winH * config.height;
         }
     }
+
+    const vw = video.videoWidth || 1280;
+    const vh = video.videoHeight || 720;
+
+    const boxW = isSideways ? winH : winW;
+    const boxH = isSideways ? winW : winH;
+
+    const videoRatio = vw / vh;
+    const boxRatio = boxW / boxH;
+
+    let renderW, renderH;
+    if (videoRatio > boxRatio) {
+        renderH = boxH;
+        renderW = boxH * videoRatio;
+    } else {
+        renderW = boxW;
+        renderH = boxW / videoRatio;
+    }
+
     video.style.position = 'absolute';
     video.style.left = '50%';
     video.style.top = '50%';
-    video.style.width = isSideways ? '175%' : '100%';
-    video.style.height = isSideways ? '175%' : '100%';
+    video.style.width = `${renderW}px`;
+    video.style.height = `${renderH}px`;
+    video.style.maxWidth = 'none';
+    video.style.maxHeight = 'none';
     video.style.objectFit = 'cover';
     video.style.transformOrigin = 'center center';
     video.style.transform = `translate(-50%, -50%) ${counterRot} ${mirror}`.trim();
