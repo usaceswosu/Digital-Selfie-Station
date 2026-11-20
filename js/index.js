@@ -125,6 +125,7 @@ if (rotateBtn) {
 
 window.addEventListener('resize', syncOrientation);
 window.addEventListener('orientationchange', syncOrientation);
+
 if (screen.orientation && screen.orientation.addEventListener) {
     screen.orientation.addEventListener('change', syncOrientation);
 }

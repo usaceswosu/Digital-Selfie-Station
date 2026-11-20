@@ -77,10 +77,14 @@
 
     <!-- Camera -->
     <div class="viewfinder" id="cameraBooth" style="display: none;">
-        <video id="webcam" autoplay playsinline muted></video>
-        <img id="liveOverlayPreview" alt="" style="display: none; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; pointer-events: none; z-index: 10;">
+        <div id="boothStage" class="booth-stage">
+            <video id="webcam" autoplay playsinline muted></video>
+            <img id="liveOverlayPreview" alt="" style="display: none; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; pointer-events: none; z-index: 10;">
+        </div>
+
         <div id="countdown" class="countdown-display"></div>
         <canvas id="snapshotCanvas" style="display: none;"></canvas>
+
         <div id="photoReviewModal" class="review-overlay" style="display: none;">
             <div class="review-card">
                 <h3>Lookin' Good!</h3>
@@ -92,12 +96,10 @@
                 <p id="uploadStatus" role="status" aria-live="polite"></p>
             </div>
         </div>
-        <div class="swap-overlay">
-            <button id="overlayBtn" class="btn-icon" title="Choose Overlay">
-                <img src="assets/overlay.svg" alt="Overlay">
-            </button>
-        </div>
-        <button id="openOverlayBtn" class="btn-icon" title="Change Frame">
+        <button id="rotateBtn" class="btn-icon" title="Rotate Frame" type="button" aria-label="Rotate Frame">
+            <img src="assets/rotate.svg" alt="Rotate">
+        </button>
+        <button id="openOverlayBtn" class="btn-icon" title="Change Frame" type="button">
             <img src="assets/frame-swap.svg" alt="Change Frame">
         </button>
         <div class="controls">
@@ -136,7 +138,7 @@
                 consentDialog.close();
                 consentScreen.style.display = 'none';
                 cameraBooth.style.display = 'block';
-
+                syncOrientation()
                 if (typeof startCamera === 'function') {
                     startCamera(typeof currentFacingMode === 'undefined' ? 'user' : currentFacingMode);
                 }

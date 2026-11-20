@@ -102,6 +102,17 @@ button.btn-icon {
     filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.35));
 }
 
+.booth-stage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    transform: translate(-50%, -50%);
+    transform-origin: center center;
+    transition: transform 0.25s ease, width 0.25s ease, height 0.25s ease;
+    overflow: hidden;
+}
 
 button.btn-icon img {
     transform: scale(1.25);
@@ -128,7 +139,8 @@ button.btn-large img {
 
 #openOverlayBtn {
     position: absolute;
-    top: max(16px, env(safe-area-inset-top));
+    margin: 16px;
+    top: 16px;
     right: 16px;
     width: clamp(44px, 5.5vw, 72px);
     height: clamp(44px, 5.5vw, 72px);
@@ -140,12 +152,31 @@ button.btn-large img {
     z-index: 20;
 }
 
+#rotateBtn {
+    margin: 32px;
+}
+
+#rotateBtn img {
+    filter: brightness(0) invert(1) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45));
+}
 #openOverlayBtn img {
     transform: scale(1.25);
     width: 100%;
     height: 100%;
     object-fit: contain;
     filter: brightness(0) invert(1) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45));
+}
+
+.booth-stage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    transform: translate(-50%, -50%);
+    transform-origin: center center;
+    transition: transform 0.25s ease, width 0.25s ease, height 0.25s ease;
+    overflow: hidden;
 }
 
 button:disabled {
