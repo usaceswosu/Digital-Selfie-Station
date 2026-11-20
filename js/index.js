@@ -18,11 +18,13 @@ const closeOverlayModal = document.getElementById('closeOverlayModal');
 const openOverlayBtn = document.getElementById('openOverlayBtn');
 const loadedOverlayImages = {};
 const liveOverlayPreview = document.getElementById('liveOverlayPreview');
+const rotateBtn = document.getElementById('rotateBtn');
+const boothStage = document.getElementById('boothStage');
 
 const frameConfigs = {
-    'assets/frame1.png': { x: 0.09, y: 0.2, width: 0.85, height: 0.85 },
-    'assets/frame2.png': { x: 0.09, y: 0.2, width: 0.85, height: 0.85 },
-    'assets/frame3.png': { x: 0.09, y: 0.2, width: 0.85, height: 0.85 },
+    'assets/frame1.png': { x: 0.09, y: 0.125, width: 0.85, height: 0.875 },
+    'assets/frame2.png': { x: 0.09, y: 0.125, width: 0.85, height: 0.875 },
+    'assets/frame3.png': { x: 0.09, y: 0.125, width: 0.85, height: 0.875 },
     'assets/frame4.png': { x: 0.09, y: 0.1, width: 0.85, height: 0.85 },
     'assets/frame5.png': { x: 0.09, y: 0.1, width: 0.85, height: 0.85 }
 };
@@ -88,7 +90,7 @@ function applyBoothRotation() {
 
     activeRotation = getEffectiveRotation();
 
-    const rect = cameraBooth.getBoundingClientRect();
+    const rect = cameraBooth.getBoundingClientRect();  
     const vw = rect.width || window.innerWidth;
     const vh = rect.height || window.innerHeight;
     const isSideways = activeRotation % 180 !== 0;
@@ -255,7 +257,7 @@ async function launchPhotoBooth() {
     consentDialog.close();
     consentScreen.style.display = 'none';
     cameraBooth.style.display = 'block';
-
+    syncOrientation();
     await startCamera(currentFacingMode);
 
     overlayModal.style.display = 'flex';
